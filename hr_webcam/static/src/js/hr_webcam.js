@@ -73,12 +73,12 @@ openerp.hr_webcam = function(instance) {
                         img.data[pos + 3] = 0xff;
                         pos+= 4;
                     }
-                    image = img
+                    image = img;
                     
                     if (pos >= 4 * 320 * 240) {
                         ctx.putImageData(img, 0, 0);
                         vals = {'image': canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "")};
-                        model = new instance.web.Model("hr.employee")
+                        model = new instance.web.Model("hr.employee");
                         if (employee_id)
                             model.call('write', [employee_id, vals]).then(null);
                         pos = 0;

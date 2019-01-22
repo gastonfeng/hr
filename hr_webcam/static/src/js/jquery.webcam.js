@@ -59,22 +59,22 @@
 		    try {
 			return cam.capture(x);
 		    } catch(e) {}
-		}
+        };
 		webcam.save = function(x) {
 		    try {
 			return cam.save(x);
 		    } catch(e) {}
-		}
+        };
 		webcam.setCamera = function(x) {
 		    try {
 			return cam.setCamera(x);
 		    } catch(e) {}
-		}
+        };
 		webcam.getCameraList = function() {
 		    try {
 			return cam.getCameraList();
 		    } catch(e) {}
-		}
+        };
 
 		webcam.onLoad();
 	    } else if (0 == run) {

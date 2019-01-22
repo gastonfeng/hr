@@ -23,7 +23,8 @@ calendarView.include({
             .then(function (publicHolidays, holidayColor) {
                 // as a result of `search_read` call is the JS object
                 // (dictionary), it's still our duty to clean up results
-                self.publicHolidays = publicHolidays.map(x => x['date']);
+                self.publicHolidays = publicHolidays.map(x = > x['date'];
+            )
                 self.holidayColor = holidayColor;
             });
     },
