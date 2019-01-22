@@ -20,16 +20,17 @@
 #
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
-from openerp import netsvc
 import openerp.addons.decimal_precision as dp
-from openerp.osv import fields, orm
+from dateutil.relativedelta import relativedelta
+from openerp import netsvc
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp.tools.translate import _
 
+from odoo import models, fields
 
-class wage_increment(orm.Model):
+
+class wage_increment(models.Model):
 
     _name = 'hr.contract.wage.increment'
     _description = 'HR Contract Wage Adjustment'
@@ -58,98 +59,28 @@ class wage_increment(orm.Model):
 
         return res
 
-    _columns = {
-        'effective_date': fields.date(
-            'Effective Date',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'wage': fields.float(
-            'New Wage',
-            digits_compute=dp.get_precision('Payroll'),
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'new_contract_id': fields.many2one(
-            'hr.contract',
-            'New Contract',
-            readonly=True,
-        ),
-        'contract_id': fields.many2one(
-            'hr.contract',
-            'Contract',
-            readonly=True,
-        ),
-        'current_wage': fields.related(
-            'contract_id',
-            'wage',
-            type='float',
-            string='Current Wage',
-            store=True,
-            readonly=True,
-        ),
-        'wage_difference': fields.function(
-            _calculate_difference,
-            type='float',
-            method=True,
-            string='Difference',
-            multi='diff',
-            readonly=True,
-        ),
-        'wage_difference_percent': fields.function(
-            _calculate_difference,
-            type='float',
-            method=True,
-            string='Percentage',
-            multi='diff',
-            readonly=True,
-        ),
-        'employee_id': fields.related(
-            'contract_id',
-            'employee_id',
-            relation='hr.employee',
-            type='many2one',
-            string='Employee',
-            store=True,
-            readonly=True,
-        ),
-        'job_id': fields.related(
-            'contract_id',
-            'job_id',
-            relation='hr.job',
-            type='many2one',
-            string='Job',
-            store=True,
-            readonly=True,
-        ),
-        'department_id': fields.related(
-            'employee_id',
-            'department_id',
-            relation='hr.department',
-            type='many2one',
-            string='Department',
-            store=True,
-            readonly=True,
-        ),
-        'state': fields.selection(
-            [
-                ('draft', 'Draft'),
-                ('confirm', 'Confirmed'),
-                ('approve', 'Approved'),
-                ('decline', 'Declined')
-            ],
-            'State',
-            readonly=True,
-        ),
-        'run_id': fields.many2one(
-            'hr.contract.wage.increment.run',
-            'Batch Run',
-            readonly=True,
-            ondelete='cascade',
-        ),
-    }
+    effective_date = fields.Date('Effective Date', required=True, readonly=True,
+                                 states={'draft': [('readonly', False)]}, )
+    wage = fields.Float('New Wage', digits_compute=dp.get_precision('Payroll'), required=True, readonly=True,
+                        states={'draft': [('readonly', False)]}, )
+    new_contract_id = fields.Many2one('hr.contract', 'New Contract', readonly=True, )
+    contract_id = fields.Many2one('hr.contract', 'Contract', readonly=True, )
+    current_wage = fields.Float(related='contract_id.wage', type='float', string='Current Wage', store=True,
+                                readonly=True, )
+    wage_difference = fields.Float(compute='_calculate_difference', type='float', method=True, string='Difference',
+                                   multi='diff', readonly=True, )
+    wage_difference_percent = fields.Float(compute='_calculate_difference', type='float', method=True,
+                                           string='Percentage', multi='diff', readonly=True, )
+    employee_id = fields.Many2one(related='contract_id.employee_id', relation='hr.employee', type='many2one',
+                                  string='Employee', store=True, readonly=True, )
+    job_id = fields.Many2one(related='contract_id.job_id', relation='hr.job', type='many2one', string='Job', store=True,
+                             readonly=True, )
+    department_id = fields.Many2one(related='employee_id.department_id', relation='hr.department', type='many2one',
+                                    string='Department', store=True, readonly=True, )
+    state = fields.Selection(
+        [('draft', 'Draft'), ('confirm', 'Confirmed'), ('approve', 'Approved'), ('decline', 'Declined')], 'State',
+        readonly=True, )
+    run_id = fields.Many2one('hr.contract.wage.increment.run', 'Batch Run', readonly=True, ondelete='cascade', )
 
     def _get_contract_data(self, cr, uid, field_list, context=None):
 

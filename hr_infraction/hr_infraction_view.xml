@@ -217,7 +217,7 @@
             <field name="inherit_id" ref="hr.view_employee_form"/>
             <field name="arch" type="xml">
                 <data>
-                    <xpath expr="//page[@string='HR Settings']" position="after">
+                    <xpath expr="//page[@name='HR Settings']" position="after">
                         <page string="Disciplinary Information">
                             <group>
                                 <group string="Infractions">

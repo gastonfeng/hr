@@ -19,20 +19,18 @@
 #
 #
 
+import logging
 import time
-
-
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from pytz import timezone, utc
 
+from dateutil.relativedelta import relativedelta
 from openerp import netsvc
 from openerp.osv import fields, orm
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as OE_DTFORMAT
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as OE_DFORMAT
 from openerp.tools.translate import _
+from pytz import timezone, utc
 
-import logging
 _logger = logging.getLogger(__name__)
 
 DAYOFWEEK_SELECTION = [
@@ -79,121 +77,35 @@ class hr_schedule(orm.Model):
             res[obj.id] = alert_ids
         return res
 
-    _columns = {
-        'name': fields.char(
-            "Description",
-            size=64,
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'company_id': fields.many2one(
-            'res.company',
-            'Company',
-            readonly=True,
-        ),
-        'employee_id': fields.many2one(
-            'hr.employee',
-            'Employee',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'template_id': fields.many2one(
-            'hr.schedule.template',
-            'Schedule Template',
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'detail_ids': fields.one2many(
-            'hr.schedule.detail',
-            'schedule_id',
-            'Schedule Detail',
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'date_start': fields.date(
-            'Start Date',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]}
-        ),
-        'date_end': fields.date(
-            'End Date',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]}
-        ),
-        'department_id': fields.related(
-            'employee_id',
-            'department_id',
-            type='many2one',
-            relation='hr.department',
-            string='Department',
-            readonly=True,
-            store={
-                'hr.schedule': (
-                    lambda s, cr, u, ids, ctx: ids,
-                    ['employee_id'],
-                    10,
-                )
-            },
-        ),
-        'alert_ids': fields.function(
-            _compute_alerts,
-            type='one2many',
-            relation='hr.schedule.alert',
-            string='Alerts',
-            method=True,
-            readonly=True,
-        ),
-        'restday_ids1': fields.many2many(
-            'hr.schedule.weekday',
-            'schedule_restdays_rel1',
-            'sched_id',
-            'weekday_id',
-            string='Rest Days Week 1',
-        ),
-        'restday_ids2': fields.many2many(
-            'hr.schedule.weekday',
-            'schedule_restdays_rel2',
-            'sched_id',
-            'weekday_id',
-            string='Rest Days Week 2',
-        ),
-        'restday_ids3': fields.many2many(
-            'hr.schedule.weekday',
-            'schedule_restdays_rel3',
-            'sched_id',
-            'weekday_id',
-            string='Rest Days Week 3',
-        ),
-        'restday_ids4': fields.many2many(
-            'hr.schedule.weekday',
-            'schedule_restdays_rel4',
-            'sched_id',
-            'weekday_id',
-            string='Rest Days Week 4',
-        ),
-        'restday_ids5': fields.many2many(
-            'hr.schedule.weekday',
-            'schedule_restdays_rel5',
-            'sched_id',
-            'weekday_id',
-            string='Rest Days Week 5',
-        ),
-        'state': fields.selection(
-            [
-                ('draft', 'Draft'),
-                ('validate', 'Confirmed'),
-                ('locked', 'Locked'),
-                ('unlocked', 'Unlocked'),
-            ],
-            'State',
-            required=True,
-            readonly=True,
-        ),
-    }
+    name = fields.Char("Description", size=64, required=True, readonly=True, states={'draft': [('readonly', False)]}, )
+    company_id = fields.Many2one('res.company', 'Company', readonly=True, )
+    employee_id = fields.Many2one('hr.employee', 'Employee', required=True, readonly=True,
+                                  states={'draft': [('readonly', False)]}, )
+    template_id = fields.Many2one('hr.schedule.template', 'Schedule Template', readonly=True,
+                                  states={'draft': [('readonly', False)]}, )
+    detail_ids = fields.One2many('hr.schedule.detail', 'schedule_id', 'Schedule Detail', readonly=True,
+                                 states={'draft': [('readonly', False)]}, )
+    date_start = fields.Date('Start Date', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    date_end = fields.Date('End Date', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    department_id = fields.Many2one(related='employee_id.department_id', type='many2one', relation='hr.department',
+                                    string='Department', readonly=True,
+                                    store={'hr.schedule': (lambda s, cr, u, ids, ctx: ids, ['employee_id'], 10,)}, )
+    alert_ids = fields.One2many(compute='_compute_alerts', type='one2many', relation='hr.schedule.alert',
+                                string='Alerts', method=True, readonly=True, )
+    restday_ids1 = fields.Many2many('hr.schedule.weekday', 'schedule_restdays_rel1', 'sched_id', 'weekday_id',
+                                    string='Rest Days Week 1', )
+    restday_ids2 = fields.Many2many('hr.schedule.weekday', 'schedule_restdays_rel2', 'sched_id', 'weekday_id',
+                                    string='Rest Days Week 2', )
+    restday_ids3 = fields.Many2many('hr.schedule.weekday', 'schedule_restdays_rel3', 'sched_id', 'weekday_id',
+                                    string='Rest Days Week 3', )
+    restday_ids4 = fields.Many2many('hr.schedule.weekday', 'schedule_restdays_rel4', 'sched_id', 'weekday_id',
+                                    string='Rest Days Week 4', )
+    restday_ids5 = fields.Many2many('hr.schedule.weekday', 'schedule_restdays_rel5', 'sched_id', 'weekday_id',
+                                    string='Rest Days Week 5', )
+    state = fields.Selection(
+        [('draft', 'Draft'), ('validate', 'Confirmed'), ('locked', 'Locked'), ('unlocked', 'Unlocked'), ], 'State',
+        required=True, readonly=True, )
+
 
     _defaults = {
         'company_id': (
@@ -695,70 +607,21 @@ class schedule_detail(orm.Model):
                 res.append(detail.id)
         return res
 
-    _columns = {
-        'name': fields.char(
-            "Name",
-            size=64,
-            required=True,
-        ),
-        'dayofweek': fields.selection(
-            DAYOFWEEK_SELECTION,
-            'Day of Week',
-            required=True,
-            select=True,
-        ),
-        'date_start': fields.datetime(
-            'Start Date and Time',
-            required=True,
-        ),
-        'date_end': fields.datetime(
-            'End Date and Time',
-            required=True,
-        ),
-        'day': fields.date(
-            'Day',
-            required=True,
-            select=1,
-        ),
-        'schedule_id': fields.many2one(
-            'hr.schedule',
-            'Schedule',
-            required=True,
-        ),
-        'department_id': fields.related(
-            'schedule_id',
-            'department_id',
-            type='many2one',
-            relation='hr.department',
-            string='Department',
-            store=True,
-        ),
-        'employee_id': fields.related(
-            'schedule_id',
-            'employee_id',
-            type='many2one',
-            relation='hr.employee',
-            string='Employee',
-            store=True,
-        ),
-        'alert_ids': fields.one2many(
-            'hr.schedule.alert',
-            'sched_detail_id',
-            'Alerts',
-            readonly=True,
-        ),
-        'state': fields.selection(
-            [
-                ('draft', 'Draft'),
-                ('validate', 'Confirmed'),
-                ('locked', 'Locked'),
-                ('unlocked', 'Unlocked'),
-            ],
-            'State',
-            required=True,
-            readonly=True,
-        ),
-    }
+    name = fields.Char("Name", size=64, required=True, )
+    dayofweek = fields.Selection(DAYOFWEEK_SELECTION, 'Day of Week', required=True, select=True, )
+    date_start = fields.Datetime('Start Date and Time', required=True, )
+    date_end = fields.Datetime('End Date and Time', required=True, )
+    day = fields.Date('Day', required=True, select=1, )
+    schedule_id = fields.Many2one('hr.schedule', 'Schedule', required=True, )
+    department_id = fields.Many2one(related='schedule_id.department_id', type='many2one', relation='hr.department',
+                                    string='Department', store=True, )
+    employee_id = fields.Many2one(related='schedule_id.employee_id', type='many2one', relation='hr.employee',
+                                  string='Employee', store=True, )
+    alert_ids = fields.One2many('hr.schedule.alert', 'sched_detail_id', 'Alerts', readonly=True, )
+    state = fields.Selection(
+        [('draft', 'Draft'), ('validate', 'Confirmed'), ('locked', 'Locked'), ('unlocked', 'Unlocked'), ], 'State',
+        required=True, readonly=True, )
+
     _order = 'schedule_id, date_start, dayofweek'
     _defaults = {
         'dayofweek': '0',
@@ -1104,63 +967,17 @@ class hr_schedule_alert(orm.Model):
 
         return res
 
-    _columns = {
-        'name': fields.datetime(
-            'Date and Time',
-            required=True,
-            readonly=True,
-        ),
-        'rule_id': fields.many2one(
-            'hr.schedule.alert.rule',
-            'Alert Rule',
-            required=True,
-            readonly=True,
-        ),
-        'punch_id': fields.many2one(
-            'hr.attendance',
-            'Triggering Punch',
-            readonly=True,
-        ),
-        'sched_detail_id': fields.many2one(
-            'hr.schedule.detail',
-            'Schedule Detail',
-            readonly=True,
-        ),
-        'employee_id': fields.function(
-            _get_employee_id,
-            type='many2one',
-            obj='hr.employee',
-            method=True,
-            store=True,
-            string='Employee',
-            readonly=True,
-        ),
-        'department_id': fields.related(
-            'employee_id',
-            'department_id',
-            type='many2one',
-            store=True,
-            relation='hr.department',
-            string='Department',
-            readonly=True,
-        ),
-        'severity': fields.related(
-            'rule_id',
-            'severity',
-            type='char',
-            string='Severity',
-            store=True,
-            readonly=True,
-        ),
-        'state': fields.selection(
-            [
-                ('unresolved', 'Unresolved'),
-                ('resolved', 'Resolved'),
-            ],
-            'State',
-            readonly=True,
-        ),
-    }
+    name = fields.Datetime('Date and Time', required=True, readonly=True, )
+    rule_id = fields.Many2one('hr.schedule.alert.rule', 'Alert Rule', required=True, readonly=True, )
+    punch_id = fields.Many2one('hr.attendance', 'Triggering Punch', readonly=True, )
+    sched_detail_id = fields.Many2one('hr.schedule.detail', 'Schedule Detail', readonly=True, )
+    employee_id = fields.Many2one(compute='_get_employee_id', type='many2one', obj='hr.employee', method=True,
+                                  store=True, string='Employee', readonly=True, )
+    department_id = fields.Many2one(related='employee_id.department_id', type='many2one', store=True,
+                                    relation='hr.department', string='Department', readonly=True, )
+    severity = fields.Char(related='rule_id.severity', type='char', string='Severity', store=True, readonly=True, )
+    state = fields.Selection([('unresolved', 'Unresolved'), ('resolved', 'Resolved'), ], 'State', readonly=True, )
+
     _defaults = {
         'state': 'unresolved',
     }

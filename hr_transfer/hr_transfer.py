@@ -20,55 +20,38 @@
 #
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from openerp import netsvc
-from openerp.osv import fields, orm
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp.tools.translate import _
 
+from odoo import models, fields
 
-class hr_transfer(orm.Model):
+
+class hr_transfer(models.Model):
 
     _name = 'hr.department.transfer'
     _description = 'Departmental Transfer'
 
     _inherit = ['mail.thread', 'ir.needaction_mixin']
 
-    _columns = {
-        'employee_id': fields.many2one(
-            'hr.employee', 'Employee', required=True, readonly=True,
-            states={'draft': [('readonly', False)]}),
-        'src_id': fields.many2one(
-            'hr.job', 'From', required=True, readonly=True,
-            states={'draft': [('readonly', False)]}),
-        'dst_id': fields.many2one(
-            'hr.job', 'Destination', required=True, readonly=True,
-            states={'draft': [('readonly', False)]}),
-        'src_department_id': fields.related(
-            'src_id', 'department_id', type='many2one',
-            relation='hr.department', string='From Department',
-            store=True, readonly=True),
-        'dst_department_id': fields.related(
-            'dst_id', 'department_id', type='many2one',
-            relation='hr.department', store=True,
-            string='Destination Department', readonly=True),
-        'src_contract_id': fields.many2one(
-            'hr.contract', 'From Contract', readonly=True,
-            states={'draft': [('readonly', False)]}),
-        'dst_contract_id': fields.many2one(
-            'hr.contract', 'Destination Contract', readonly=True),
-        'date': fields.date('Effective Date', required=True, readonly=True,
-                            states={'draft': [('readonly', False)]}),
-        'state': fields.selection([
-            ('draft', 'Draft'),
-            ('confirm', 'Confirmed'),
-            ('pending', 'Pending'),
-            ('done', 'Done'),
-            ('cancel', 'Cancelled'),
-        ],
-            'State', readonly=True),
-    }
+    employee_id = fields.Many2one('hr.employee', 'Employee', required=True, readonly=True,
+                                  states={'draft': [('readonly', False)]})
+    src_id = fields.Many2one('hr.job', 'From', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    dst_id = fields.Many2one('hr.job', 'Destination', required=True, readonly=True,
+                             states={'draft': [('readonly', False)]})
+    src_department_id = fields.Many2one(related='src_id', 'department_id', type='many2one', relation='hr.department',
+                                        string='From Department', store=True, readonly=True)
+    dst_department_id = fields.Many2one(related='dst_id', 'department_id', type='many2one', relation='hr.department',
+                                        store=True, string='Destination Department', readonly=True)
+    src_contract_id = fields.Many2one('hr.contract', 'From Contract', readonly=True,
+                                      states={'draft': [('readonly', False)]})
+    dst_contract_id = fields.Many2one('hr.contract', 'Destination Contract', readonly=True)
+    date = fields.Date('Effective Date', required=True, readonly=True, states={'draft': [('readonly', False)]})
+    state = fields.Selection([('draft', 'Draft'), ('confirm', 'Confirmed'), ('pending', 'Pending'), ('done', 'Done'),
+                              ('cancel', 'Cancelled'), ], 'State', readonly=True)
+
 
     _rec_name = 'date'
 

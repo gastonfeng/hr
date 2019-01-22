@@ -21,82 +21,38 @@
 
 import time
 
-from openerp.osv import fields, orm
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp.tools.translate import _
 
+from odoo import models, fields
+from odoo.osv import orm
 
-class hr_infraction_category(orm.Model):
+
+class hr_infraction_category(models.Model):
 
     _name = 'hr.infraction.category'
     _description = 'Infraction Type'
-    _columns = {
-        'name': fields.char(
-            'Name',
-            required=True,
-        ),
-        'code': fields.char(
-            'Code',
-            required=True,
-        ),
-    }
+    name = fields.Char('Name', required=True, )
+    code = fields.Char('Code', required=True, )
 
 
-class hr_infraction(orm.Model):
+class hr_infraction(models.Model):
 
     _name = 'hr.infraction'
     _description = 'Infraction'
     _inherit = ['mail.thread', 'ir.needaction_mixin']
-    _columns = {
-        'name': fields.char(
-            'Subject',
-            size=256,
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'date': fields.date(
-            'Date',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'employee_id': fields.many2one(
-            'hr.employee',
-            'Employee',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'category_id': fields.many2one(
-            'hr.infraction.category',
-            'Category',
-            required=True,
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'action_ids': fields.one2many(
-            'hr.infraction.action',
-            'infraction_id',
-            'Actions',
-            readonly=True,
-        ),
-        'memo': fields.text(
-            'Description',
-            readonly=True,
-            states={'draft': [('readonly', False)]},
-        ),
-        'state': fields.selection(
-            [
-                ('draft', 'Draft'),
-                ('confirm', 'Confirmed'),
-                ('action', 'Actioned'),
-                ('noaction', 'No Action'),
-            ],
-            'State',
-            readonly=True,
-        ),
-    }
+    name = fields.Char('Subject', size=256, required=True, readonly=True, states={'draft': [('readonly', False)]}, )
+    date = fields.Date('Date', required=True, readonly=True, states={'draft': [('readonly', False)]}, )
+    employee_id = fields.Many2one('hr.employee', 'Employee', required=True, readonly=True,
+                                  states={'draft': [('readonly', False)]}, )
+    category_id = fields.Many2one('hr.infraction.category', 'Category', required=True, readonly=True,
+                                  states={'draft': [('readonly', False)]}, )
+    action_ids = fields.One2many('hr.infraction.action', 'infraction_id', 'Actions', readonly=True, )
+    memo = fields.Text('Description', readonly=True, states={'draft': [('readonly', False)]}, )
+    state = fields.Selection(
+        [('draft', 'Draft'), ('confirm', 'Confirmed'), ('action', 'Actioned'), ('noaction', 'No Action'), ], 'State',
+        readonly=True, )
+
     _defaults = {
         'date': time.strftime(DEFAULT_SERVER_DATE_FORMAT),
         'state': 'draft',
@@ -153,42 +109,14 @@ class hr_infraction_action(orm.Model):
 
     _name = 'hr.infraction.action'
     _description = 'Action Based on Infraction'
-    _columns = {
-        'infraction_id': fields.many2one(
-            'hr.infraction',
-            'Infraction',
-            ondelete='cascade',
-            required=True,
-            readonly=True,
-        ),
-        'type': fields.selection(
-            ACTION_TYPE_SELECTION,
-            'Type',
-            required=True,
-        ),
-        'memo': fields.text(
-            'Notes',
-        ),
-        'employee_id': fields.related(
-            'infraction_id',
-            'employee_id',
-            type='many2one',
-            store=True,
-            obj='hr.employee',
-            string='Employee',
-            readonly=True,
-        ),
-        'warning_id': fields.many2one(
-            'hr.infraction.warning',
-            'Warning',
-            readonly=True,
-        ),
-        'transfer_id': fields.many2one(
-            'hr.department.transfer',
-            'Transfer',
-            readonly=True,
-        ),
-    }
+    infraction_id = fields.Many2one('hr.infraction', 'Infraction', ondelete='cascade', required=True, readonly=True, )
+    type = fields.Selection(ACTION_TYPE_SELECTION, 'Type', required=True, )
+    memo = fields.Text('Notes', )
+    employee_id = fields.Many2one(related='infraction_id.employee_id', type='many2one', store=True, obj='hr.employee',
+                                  string='Employee', readonly=True, )
+    warning_id = fields.Many2one('hr.infraction.warning', 'Warning', readonly=True, )
+    transfer_id = fields.Many2one('hr.department.transfer', 'Transfer', readonly=True, )
+
     _rec_name = 'type'
 
     def unlink(self, cr, uid, ids, context=None):
@@ -210,45 +138,15 @@ class hr_warning(orm.Model):
 
     _name = 'hr.infraction.warning'
     _description = 'Employee Warning'
-    _columns = {
-        'name': fields.char(
-            'Subject',
-            size=256,
-        ),
-        'date': fields.date(
-            'Date Issued',
-        ),
-        'type': fields.selection(
-            [
-                ('verbal', 'Verbal'),
-                ('written', 'Written'),
-            ],
-            'Type',
-            required=True,
-        ),
-        'action_id': fields.many2one(
-            'hr.infraction.action',
-            'Action',
-            ondelete='cascade',
-            readonly=True,
-        ),
-        'infraction_id': fields.related(
-            'action_id',
-            'infraction_id',
-            type='many2one',
-            obj='hr.infraction',
-            string='Infraction',
-            readonly=True,
-        ),
-        'employee_id': fields.related(
-            'infraction_id',
-            'employee_id',
-            type='many2one',
-            obj='hr.employee',
-            string='Employee',
-            readonly=True,
-        ),
-    }
+    name = fields.Char('Subject', size=256, )
+    date = fields.Date('Date Issued', )
+    type = fields.Selection([('verbal', 'Verbal'), ('written', 'Written'), ], 'Type', required=True, )
+    action_id = fields.Many2one('hr.infraction.action', 'Action', ondelete='cascade', readonly=True, )
+    infraction_id = fields.Many2one(related='action_id.infraction_id', type='many2one', obj='hr.infraction',
+                                    string='Infraction', readonly=True, )
+    employee_id = fields.Many2one(related='infraction_id.employee_id', type='many2one', obj='hr.employee',
+                                  string='Employee', readonly=True, )
+
 
     _defaults = {
         'type': 'written',
@@ -271,17 +169,6 @@ class hr_employee(orm.Model):
 
     _name = 'hr.employee'
     _inherit = 'hr.employee'
-    _columns = {
-        'infraction_ids': fields.one2many(
-            'hr.infraction',
-            'employee_id',
-            'Infractions',
-            readonly=True,
-        ),
-        'infraction_action_ids': fields.one2many(
-            'hr.infraction.action',
-            'employee_id',
-            'Disciplinary Actions',
-            readonly=True,
-        ),
-    }
+    infraction_ids = fields.One2many('hr.infraction', 'employee_id', 'Infractions', readonly=True, )
+    infraction_action_ids == fields.One2many('hr.infraction.action', 'employee_id', 'Disciplinary Actions',
+                                             readonly=True, )

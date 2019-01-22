@@ -19,16 +19,16 @@
 #
 #
 
+import logging
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from pytz import timezone, utc
 
+from dateutil.relativedelta import relativedelta
 from openerp.osv import fields, orm
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as OE_DTFORMAT
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as OE_DFORMAT
 from openerp.tools.translate import _
+from pytz import timezone, utc
 
-import logging
 _l = logging.getLogger(__name__)
 
 
@@ -37,57 +37,21 @@ class restday(orm.TransientModel):
     _name = 'hr.restday.wizard'
     _description = 'Schedule Template Change Wizard'
 
-    _columns = {
-        'employee_id': fields.many2one(
-            'hr.employee',
-            'Employee',
-            required=True,
-        ),
-        'contract_id': fields.related(
-            'employee_id',
-            'contract_id',
-            type='many2one',
-            relation='hr.contract',
-            string='Contract',
-            readonly=True,
-        ),
-        'st_current_id': fields.many2one(
-            'hr.schedule.template',
-            'Current Template',
-            readonly=True,
-        ),
-        'st_new_id': fields.many2one(
-            'hr.schedule.template',
-            'New Template',
-        ),
-        'permanent': fields.boolean(
-            'Make Permanent',
-        ),
-        'temp_restday': fields.boolean(
-            'Temporary Rest Day Change',
-            help="If selected, change the rest day to the specified day only "
-                 "for the selected schedule.",
-        ),
-        'dayofweek': fields.selection(
-            [
-                ('0', 'Monday'),
-                ('1', 'Tuesday'),
-                ('2', 'Wednesday'),
-                ('3', 'Thursday'),
-                ('4', 'Friday'),
-                ('5', 'Saturday'),
-                ('6', 'Sunday')
-            ],
-            'Rest Day',
-            select=True,
-        ),
-        'temp_week_start': fields.date(
-            'Start of Week',
-        ),
-        'week_start': fields.date(
-            'Start of Week',
-        ),
-    }
+    employee_id = fields.Many2one('hr.employee', 'Employee', required=True, )
+    contract_id = fields.Many2one(related='employee_id.contract_id', type='many2one', relation='hr.contract',
+                                  string='Contract', readonly=True, )
+    st_current_id = fields.Many2one('hr.schedule.template', 'Current Template', readonly=True, )
+    st_new_id = fields.Many2one('hr.schedule.template', 'New Template', )
+    permanent = fields.Boolean('Make Permanent', )
+    temp_restday = fields.Boolean('Temporary Rest Day Change',
+                                  help="If selected, change the rest day to the specified day only "
+                                       "for the selected schedule.", )
+    dayofweek = fields.selection(
+        [('0', 'Monday'), ('1', 'Tuesday'), ('2', 'Wednesday'), ('3', 'Thursday'), ('4', 'Friday'), ('5', 'Saturday'),
+         ('6', 'Sunday')], 'Rest Day', select=True, )
+    temp_week_start = fields.date('Start of Week', )
+    week_start = fields.date('Start of Week', )
+
 
     _defaults = {
         'temp_restday': False,

@@ -18,34 +18,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
+from odoo import models, fields
 
-from openerp.osv import fields, orm
 
-
-class hr_employee(orm.Model):
+class hr_employee(models.Model):
 
     _name = 'hr.employee'
     _inherit = 'hr.employee'
-    _columns = {
-        'is_labour_union': fields.boolean(
-            'Labour Union Member',
-        ),
-        'labour_union_date': fields.date(
-            'Date of Membership',
-        ),
-    }
+    is_labour_union = fields.Boolean('Labour Union Member', )
+    labour_union_date = fields.Date('Date of Membership', )
 
 
-class hr_contract(orm.Model):
+class hr_contract(models.Model):
 
     _name = 'hr.contract'
     _inherit = 'hr.contract'
-    _columns = {
-        'is_labour_union': fields.related(
-            'employee_id',
-            'is_labour_union',
-            type='boolean',
-            store=True,
-            string='Labour Union Member',
-        ),
-    }
+    is_labour_union = fields.Boolean(related='employee_id.is_labour_union', type='boolean', store=True,
+                                     string='Labour Union Member', )
