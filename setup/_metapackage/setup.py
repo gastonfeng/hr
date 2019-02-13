@@ -8,6 +8,8 @@ setuptools.setup(
     description="Meta package for oca-hr Odoo addons",
     version=version,
     install_requires=[
+        'odoo10-addon-hr_attendance_autoclose',
+        'odoo10-addon-hr_attendance_reason',
         'odoo10-addon-hr_attendance_report_theoretical_time',
         'odoo10-addon-hr_attendance_rfid',
         'odoo10-addon-hr_contract_default_trial_length',
@@ -42,6 +44,7 @@ setuptools.setup(
         'odoo10-addon-hr_payslip_change_state',
         'odoo10-addon-hr_period',
         'odoo10-addon-hr_public_holidays',
+        'odoo10-addon-hr_recruitment_candidate_multi_applicant',
         'odoo10-addon-hr_recruitment_skill',
         'odoo10-addon-hr_skill',
         'odoo10-addon-hr_worked_days_from_timesheet',

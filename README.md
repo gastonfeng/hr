@@ -14,6 +14,8 @@ Available addons
 ----------------
 addon | version | summary
 --- | --- | ---
+[hr_attendance_autoclose](hr_attendance_autoclose/) | 10.0.1.0.0 | Close stale Attendances
+[hr_attendance_reason](hr_attendance_reason/) | 10.0.1.0.0 | HR Attendance Reason
 [hr_attendance_report_theoretical_time](hr_attendance_report_theoretical_time/) | 10.0.1.0.0 | Theoretical vs Attended Time Analysis
 [hr_attendance_rfid](hr_attendance_rfid/) | 10.0.1.0.0 | HR Attendance RFID
 [hr_contract_default_trial_length](hr_contract_default_trial_length/) | 10.0.1.0.0 | Define default trail length for contracts
@@ -48,6 +50,7 @@ addon | version | summary
 [hr_payslip_change_state](hr_payslip_change_state/) | 10.0.1.0.0 | Change the state of many payslips at a time
 [hr_period](hr_period/) | 10.0.1.1.0 | Add payroll periods
 [hr_public_holidays](hr_public_holidays/) | 10.0.1.1.0 | Manage Public Holidays
+[hr_recruitment_candidate_multi_applicant](hr_recruitment_candidate_multi_applicant/) | 10.0.1.0.0 | Applications
 [hr_recruitment_skill](hr_recruitment_skill/) | 10.0.1.0.0 | Add skills on job position
 [hr_skill](hr_skill/) | 10.0.1.0.0 | Skill Management
 [hr_worked_days_from_timesheet](hr_worked_days_from_timesheet/) | 10.0.1.0.0 | Adds a button to import worked days from timesheet.
