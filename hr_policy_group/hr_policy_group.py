@@ -65,10 +65,10 @@ class hr_contract(orm.Model):
         ),
     }
 
-    def _get_policy_group(self, cr, uid, context=None):
+    def _get_policy_group(self,  context=None):
 
         res = False
-        init = self.get_latest_initial_values(cr, uid, context=context)
+        init = self.get_latest_initial_values( context=context)
         if init is not None and init.policy_group_id:
             res = init.policy_group_id.id
         return res

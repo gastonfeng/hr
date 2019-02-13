@@ -68,30 +68,30 @@ class hr_infraction(models.Model):
         },
     }
 
-    def _needaction_domain_get(self, cr, uid, context=None):
+    def _needaction_domain_get(self,  context=None):
         users_obj = self.pool.get('res.users')
         domain = []
-        if users_obj.has_group(cr, uid, 'base.group_hr_manager'):
+        if users_obj.has_group( 'base.group_hr_manager'):
             domain = [('state', '=', 'confirm')]
         if len(domain) == 0:
             return False
         return domain
 
-    def unlink(self, cr, uid, ids, context=None):
-        for infraction in self.browse(cr, uid, ids, context=context):
+    def unlink(self,  ids, context=None):
+        for infraction in self.browse( ids, context=context):
             if infraction.state not in ['draft']:
                 raise orm.except_orm(
                     _('Error'),
                     _('Infractions that have progressed beyond "Draft" state '
                       'may not be removed.')
                 )
-        return super(hr_infraction, self).unlink(cr, uid, ids, context=context)
+        return super(hr_infraction, self).unlink( ids, context=context)
 
-    def onchange_category(self, cr, uid, ids, category_id, context=None):
+    def onchange_category(self,  ids, category_id, context=None):
         res = {'value': {'name': False}}
         if category_id:
             category = self.pool.get('hr.infraction.category').browse(
-                cr, uid, category_id, context=context
+                 category_id, context=context
             )
             res['value']['name'] = category.name
         return res
@@ -119,9 +119,9 @@ class hr_infraction_action(orm.Model):
 
     _rec_name = 'type'
 
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self,  ids, context=None):
 
-        for action in self.browse(cr, uid, ids, context=context):
+        for action in self.browse( ids, context=context):
             if action.infraction_id.state not in ['draft']:
                 raise orm.except_orm(
                     _('Error'),
@@ -130,7 +130,7 @@ class hr_infraction_action(orm.Model):
                 )
 
         return super(hr_infraction_action, self).unlink(
-            cr, uid, ids, context=context
+             ids, context=context
         )
 
 
@@ -153,8 +153,8 @@ class hr_warning(orm.Model):
         'date': time.strftime(DEFAULT_SERVER_DATE_FORMAT),
     }
 
-    def unlink(self, cr, uid, ids, context=None):
-        for warning in self.browse(cr, uid, ids, context=context):
+    def unlink(self,  ids, context=None):
+        for warning in self.browse( ids, context=context):
             if (warning.action_id
                     and warning.action_id.infraction_id.state != 'draft'):
                 raise orm.except_orm(
@@ -162,7 +162,7 @@ class hr_warning(orm.Model):
                     _('Warnings attached to Infractions not in "Draft" state '
                       'may not be removed.')
                 )
-        return super(hr_warning, self).unlink(cr, uid, ids, context=context)
+        return super(hr_warning, self).unlink( ids, context=context)
 
 
 class hr_employee(orm.Model):

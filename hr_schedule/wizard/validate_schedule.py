@@ -42,9 +42,9 @@ class department_selection(orm.TransientModel):
         ),
     }
 
-    def view_schedules(self, cr, uid, ids, context=None):
+    def view_schedules(self,  ids, context=None):
 
-        data = self.read(cr, uid, ids, context=context)[0]
+        data = self.read( ids, context=context)[0]
         return {
             'view_type': 'form',
             'view_mode': 'tree,form',
@@ -59,12 +59,12 @@ class department_selection(orm.TransientModel):
             'context': context,
         }
 
-    def do_validate(self, cr, uid, ids, context=None):
+    def do_validate(self,  ids, context=None):
 
         wkf_service = netsvc.LocalService('workflow')
-        data = self.read(cr, uid, ids, context=context)[0]
+        data = self.read( ids, context=context)[0]
         sched_ids = self.pool.get('hr.schedule').search(
-            cr, uid, [
+             [
                 ('department_id', 'in', data['department_ids'])
             ], context=context
         )

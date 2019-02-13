@@ -42,12 +42,12 @@ class policy_presence(orm.Model):
     # Return records with latest date first
     _order = 'date desc'
 
-    def get_codes(self, cr, uid, idx, context=None):
+    def get_codes(self,  idx, context=None):
 
         res = []
         [res.append(
             (line.code, line.name, line.type, line.rate, line.duration))
-         for line in self.browse(cr, uid, idx, context=context).line_ids]
+         for line in self.browse( idx, context=context).line_ids]
         return res
 
 

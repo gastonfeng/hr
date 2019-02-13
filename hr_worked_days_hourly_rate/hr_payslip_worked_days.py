@@ -28,10 +28,10 @@ class hr_payslip_worked_days(orm.Model):
     _inherit = 'hr.payslip.worked_days'
 
     def _get_total(
-        self, cr, uid, ids, field_name, arg=None, context=None
+        self,  ids, field_name, arg=None, context=None
     ):
         res = {}
-        for wd in self.browse(cr, uid, ids, context=context):
+        for wd in self.browse( ids, context=context):
             res[wd.id] = wd.number_of_hours \
                 * wd.hourly_rate * wd.rate / 100
         return res

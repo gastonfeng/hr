@@ -32,7 +32,7 @@ class hr_activity(orm.Model):
     _description = 'Employee Activities'
 
     def _get_activity_name(
-        self, cr, uid, ids,
+        self,  ids,
         field_name=False, arg=False,
         context=False
     ):
@@ -41,7 +41,7 @@ class hr_activity(orm.Model):
         if isinstance(ids, (int, long)):
             ids = [ids]
 
-        for activity in self.browse(cr, uid, ids, context=context):
+        for activity in self.browse( ids, context=context):
             if activity.type == 'job' and activity.job_id:
                 res[activity.id] = activity.job_id.name_get()[0][1]
 
@@ -53,7 +53,7 @@ class hr_activity(orm.Model):
 
         return res
 
-    def onchange_activity_type(self, cr, uid, ids, context=None):
+    def onchange_activity_type(self,  ids, context=None):
         return {
             'value': {
                 'job_id': 0,

@@ -28,7 +28,7 @@ class hr_payslip(orm.Model):
     _inherit = 'hr.payslip'
 
     def get_rule_variable(
-        self, cr, uid, ids, rule_id, date, localdict=False, context=None
+        self,  ids, rule_id, date, localdict=False, context=None
     ):
         """
         Gets a salary rule variable related to a salary rule for
@@ -44,7 +44,7 @@ class hr_payslip(orm.Model):
         returns: fixed amount (a float) or a python object (most likely a dict)
         """
         rule = self.pool['hr.salary.rule'].browse(
-            cr, uid, rule_id, context=context
+             rule_id, context=context
         )
 
         # Find the salary rule variable related to that rule for the

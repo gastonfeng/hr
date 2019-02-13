@@ -50,7 +50,7 @@ class hr_schedule_generate(orm.TransientModel):
         'no_weeks': 2,
     }
 
-    def onchange_start_date(self, cr, uid, ids, date_start, context=None):
+    def onchange_start_date(self,  ids, date_start, context=None):
 
         res = {
             'value': {
@@ -65,11 +65,11 @@ class hr_schedule_generate(orm.TransientModel):
 
         return res
 
-    def generate_schedules(self, cr, uid, ids, context=None):
+    def generate_schedules(self,  ids, context=None):
 
         sched_obj = self.pool.get('hr.schedule')
         ee_obj = self.pool.get('hr.employee')
-        data = self.read(cr, uid, ids, context=context)[0]
+        data = self.read( ids, context=context)[0]
 
         dStart = datetime.strptime(data['date_start'], '%Y-%m-%d').date()
         dEnd = dStart + relativedelta(weeks=+data['no_weeks'], days=-1)
@@ -77,7 +77,7 @@ class hr_schedule_generate(orm.TransientModel):
         sched_ids = []
         if len(data['employee_ids']) > 0:
             for ee in ee_obj.browse(
-                    cr, uid, data['employee_ids'], context=context):
+                     data['employee_ids'], context=context):
                 if (not ee.contract_id
                         or not ee.contract_id.schedule_template_id):
                     continue
@@ -90,7 +90,7 @@ class hr_schedule_generate(orm.TransientModel):
                     'date_end': dEnd.strftime('%Y-%m-%d'),
                 }
                 sched_ids.append(
-                    sched_obj.create(cr, uid, sched, context=context))
+                    sched_obj.create( sched, context=context))
 
         return {
             'view_type': 'form',

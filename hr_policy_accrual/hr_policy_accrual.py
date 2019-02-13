@@ -67,7 +67,7 @@ class hr_policy(orm.Model):
     # Return records with latest date first
     _order = 'date desc'
 
-    def get_latest_policy(self, cr, uid, policy_group, dToday, context=None):
+    def get_latest_policy(self,  policy_group, dToday, context=None):
         """Return an accrual policy with an effective date before dToday
         but greater than all the others"""
 
@@ -88,7 +88,7 @@ class hr_policy(orm.Model):
         return res
 
     def _calculate_and_deposit(
-        self, cr, uid, line, employee, job_id, dToday=None, context=None
+        self,  line, employee, job_id, dToday=None, context=None
     ):
 
         leave_obj = self.pool.get('hr.holidays')
@@ -112,7 +112,7 @@ class hr_policy(orm.Model):
 
         srvc_months, dHire = self.pool.get(
             'hr.employee').get_months_service_to_date(
-                cr, uid, [employee.id], dToday=dToday,
+                 [employee.id], dToday=dToday,
                 context=context)[employee.id]
         srvc_months = int(srvc_months)
         if dToday is None:
@@ -226,9 +226,9 @@ class hr_policy(orm.Model):
             'amount': amount,
         }
         acr_id = accrual_line_obj.create(
-            cr, uid, accrual_line, context=context)
+             accrual_line, context=context)
         accrual_obj.write(
-            cr, uid, line.accrual_id.id, {'line_ids': [(4, acr_id)]})
+             line.accrual_id.id, {'line_ids': [(4, acr_id)]})
 
         # Add the leave and trigger validation workflow
         #
@@ -241,7 +241,7 @@ class hr_policy(orm.Model):
             'from_accrual': True,
         }
         holiday_id = leave_obj.create(
-            cr, uid, leave_allocation, context=context)
+             leave_allocation, context=context)
         netsvc.LocalService('workflow').trg_validate(
             uid, 'hr.holidays', holiday_id, 'validate', cr)
 
@@ -249,34 +249,34 @@ class hr_policy(orm.Model):
         # policy line
         #
         job_obj.write(
-            cr, uid, job_id, {'accrual_line_ids': [
+             job_id, {'accrual_line_ids': [
                 (4, acr_id)], 'holiday_ids': [(4, holiday_id)]},
             context=context)
 
-    def _get_last_calculation_date(self, cr, uid, accrual_id, context=None):
+    def _get_last_calculation_date(self,  accrual_id, context=None):
 
         job_obj = self.pool.get('hr.policy.line.accrual.job')
 
-        job_ids = job_obj.search(cr, uid, [
+        job_ids = job_obj.search( [
             ('policy_line_id', '=', accrual_id),
         ],
             order='name desc', limit=1, context=context)
         if len(job_ids) == 0:
             return None
 
-        data = job_obj.read(cr, uid, job_ids[0], ['name'], context=context)
+        data = job_obj.read( job_ids[0], ['name'], context=context)
         return datetime.strptime(data['name'], OE_DATEFORMAT).date()
 
-    def try_calculate_accruals(self, cr, uid, context=None):
+    def try_calculate_accruals(self,  context=None):
 
         pg_obj = self.pool.get('hr.policy.group')
         job_obj = self.pool.get('hr.policy.line.accrual.job')
         dToday = datetime.now().date()
 
-        pg_ids = pg_obj.search(cr, uid, [], context=context)
-        for pg in pg_obj.browse(cr, uid, pg_ids, context=context):
+        pg_ids = pg_obj.search( [], context=context)
+        for pg in pg_obj.browse( pg_ids, context=context):
             accrual_policy = self.get_latest_policy(
-                cr, uid, pg, dToday, context=context)
+                 pg, dToday, context=context)
             if accrual_policy is None:
                 continue
 
@@ -288,7 +288,7 @@ class hr_policy(orm.Model):
             line_jobs = {}
             for line in accrual_policy.line_ids:
                 d = self._get_last_calculation_date(
-                    cr, uid, line.id, context=context)
+                     line.id, context=context)
                 if d is None:
                     line_jobs[line.id] = [dToday]
                 else:
@@ -311,7 +311,7 @@ class hr_policy(orm.Model):
                         'exec': datetime.now().strftime(OE_DATETIMEFORMAT),
                         'policy_line_id': line.id,
                     }
-                    job_id = job_obj.create(cr, uid, job_vals, context=context)
+                    job_id = job_obj.create( job_vals, context=context)
 
                     employee_list = []
                     for contract in pg.contract_ids:
@@ -327,7 +327,7 @@ class hr_policy(orm.Model):
                         ):
                             continue
                         self._calculate_and_deposit(
-                            cr, uid, line, contract.employee_id,
+                             line, contract.employee_id,
                             job_id, dToday=dJob, context=context)
 
                         # An employee may have multiple valid contracts. Don't
@@ -474,7 +474,7 @@ class hr_holidays(orm.Model):
     }
 
     def _do_accrual(
-        self, cr, uid, today, holiday_status_id, employee_id, days,
+        self,  today, holiday_status_id, employee_id, days,
         context=None
     ):
 
@@ -482,7 +482,7 @@ class hr_holidays(orm.Model):
         accrual_line_obj = self.pool.get('hr.accrual.line')
 
         accrual_ids = accrual_obj.search(
-            cr, uid, [('holiday_status_id', '=', holiday_status_id)],
+             [('holiday_status_id', '=', holiday_status_id)],
             context=context)
 
         if len(accrual_ids) == 0:
@@ -497,63 +497,63 @@ class hr_holidays(orm.Model):
             'amount': days,
         }
         line_id = accrual_line_obj.create(
-            cr, uid, accrual_line, context=context)
+             accrual_line, context=context)
         accrual_obj.write(
-            cr, uid, accrual_ids[0], {'line_ids': [(4, line_id)]})
+             accrual_ids[0], {'line_ids': [(4, line_id)]})
 
         return
 
-    def holidays_validate(self, cr, uid, ids, context=None):
+    def holidays_validate(self,  ids, context=None):
 
         res = super(hr_holidays, self).holidays_validate(
-            cr, uid, ids, context=context)
+             ids, context=context)
 
         if isinstance(ids, (int, long)):
             ids = [ids]
 
         today = datetime.now().strftime(OE_DATEFORMAT)
-        for record in self.browse(cr, uid, ids, context=context):
+        for record in self.browse( ids, context=context):
             if (
                 record.holiday_type == 'employee'
                 and record.type == 'add' and not record.from_accrual
             ):
 
                 self._do_accrual(
-                    cr, uid, today, record.holiday_status_id.id,
+                     today, record.holiday_status_id.id,
                     record.employee_id.id,
                     record.number_of_days_temp, context=context)
 
             elif record.holiday_type == 'employee' and record.type == 'remove':
 
                 self._do_accrual(
-                    cr, uid, today, record.holiday_status_id.id,
+                     today, record.holiday_status_id.id,
                     record.employee_id.id,
                     -record.number_of_days_temp, context=context)
 
         return res
 
-    def holidays_refuse(self, cr, uid, ids, context=None):
+    def holidays_refuse(self,  ids, context=None):
 
         if isinstance(ids, (int, long)):
             ids = [ids]
 
         today = datetime.now().strftime(OE_DATEFORMAT)
-        for record in self.browse(cr, uid, ids, context=context):
+        for record in self.browse( ids, context=context):
             if record.state not in ['validate', 'validate1']:
                 continue
 
             if record.holiday_type == 'employee' and record.type == 'add':
 
                 self._do_accrual(
-                    cr, uid, today, record.holiday_status_id.id,
+                     today, record.holiday_status_id.id,
                     record.employee_id.id,
                     -record.number_of_days_temp, context=context)
 
             elif record.holiday_type == 'employee' and record.type == 'remove':
 
                 self._do_accrual(
-                    cr, uid, today, record.holiday_status_id.id,
+                     today, record.holiday_status_id.id,
                     record.employee_id.id,
                     record.number_of_days_temp, context=context)
         return super(hr_holidays, self).holidays_refuse(
-            cr, uid, ids, context=None)
+             ids, context=None)

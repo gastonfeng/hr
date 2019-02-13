@@ -31,11 +31,11 @@ class hr_job(orm.Model):
     _name = 'hr.job'
     _inherit = 'hr.job'
 
-    def _get_all_child_ids(self, cr, uid, ids, field_name, arg, context=None):
+    def _get_all_child_ids(self,  ids, field_name, arg, context=None):
         result = dict.fromkeys(ids)
         for i in ids:
             result[i] = self.search(
-                cr, uid, [('parent_id', 'child_of', i)], context=context)
+                 [('parent_id', 'child_of', i)], context=context)
 
         return result
 
@@ -73,7 +73,7 @@ class hr_job(orm.Model):
     _parent_order = 'name'
     _order = 'parent_left'
 
-    def _check_recursion(self, cr, uid, ids, context=None):
+    def _check_recursion(self,  ids, context=None):
 
         # Copied from product.category
         # This is a brute-force approach to the problem, but should be good
@@ -91,16 +91,16 @@ class hr_job(orm.Model):
             level -= 1
         return True
 
-    def _rec_message(self, cr, uid, ids, context=None):
+    def _rec_message(self,  ids, context=None):
         return _('Error!\nYou cannot create recursive jobs.')
 
     _constraints = [
         (_check_recursion, _rec_message, ['parent_id']),
     ]
 
-    def write(self, cr, uid, ids, vals, context=None):
+    def write(self,  ids, vals, context=None):
 
-        res = super(hr_job, self).write(cr, uid, ids, vals, context=None)
+        res = super(hr_job, self).write( ids, vals, context=None)
 
         if isinstance(ids, (int, long)):
             ids = [ids]
@@ -108,7 +108,7 @@ class hr_job(orm.Model):
         dept_obj = self.pool.get('hr.department')
         if vals.get('department_manager', False):
             for di in ids:
-                job = self.browse(cr, uid, di, context=context)
+                job = self.browse( di, context=context)
                 dept_id = False
                 if vals.get('department_id', False):
                     dept_id = vals['department_id']
@@ -119,32 +119,32 @@ class hr_job(orm.Model):
                     employee_id = ee.id
                 if employee_id:
                     dept_obj.write(
-                        cr, uid, dept_id, {
+                         dept_id, {
                             'manager_id': employee_id,
                         }, context=context
                     )
         elif vals.get('department_id', False):
             for di in ids:
-                job = self.browse(cr, uid, di, context=context)
+                job = self.browse( di, context=context)
                 if job.department_manager:
                     employee_id = False
                     for ee in job.employee_ids:
                         employee_id = ee.id
                     dept_obj.write(
-                        cr, uid, vals['department_id'], {
+                         vals['department_id'], {
                             'manager_id': employee_id,
                         }, context=context
                     )
         elif vals.get('parent_id', False):
             ee_obj = self.pool.get('hr.employee')
             parent_job = self.browse(
-                cr, uid, vals['parent_id'], context=context)
+                 vals['parent_id'], context=context)
             parent_id = False
             for ee in parent_job.employee_ids:
                 parent_id = ee.id
-            for job in self.browse(cr, uid, ids, context=context):
+            for job in self.browse( ids, context=context):
                 ee_obj.write(
-                    cr, uid, [ee.id for ee in job.employee_ids], {
+                     [ee.id for ee in job.employee_ids], {
                         'parent_id': parent_id,
                     }, context=context
                 )
@@ -157,16 +157,16 @@ class hr_contract(orm.Model):
     _name = 'hr.contract'
     _inherit = 'hr.contract'
 
-    def create(self, cr, uid, vals, context=None):
+    def create(self,  vals, context=None):
 
-        res = super(hr_contract, self).create(cr, uid, vals, context=context)
+        res = super(hr_contract, self).create( vals, context=context)
 
         if not vals.get('job_id', False):
             return res
 
         ee_obj = self.pool.get('hr.employee')
         job = self.pool.get('hr.job').browse(
-            cr, uid, vals['job_id'], context=context)
+             vals['job_id'], context=context)
 
         # Write the employee's manager
         if job and job.parent_id:
@@ -175,7 +175,7 @@ class hr_contract(orm.Model):
                 parent_id = ee.id
             if parent_id and vals.get('employee_id'):
                 ee_obj.write(
-                    cr, uid, vals['employee_id'], {'parent_id': parent_id},
+                     vals['employee_id'], {'parent_id': parent_id},
                     context=context)
 
         # Write any employees with jobs that are immediate descendants of this
@@ -184,24 +184,24 @@ class hr_contract(orm.Model):
             job_child_ids = [child.id for child in job.child_ids]
             if len(job_child_ids) > 0:
                 ee_ids = ee_obj.search(
-                    cr, uid, [('job_id', 'in', job_child_ids)])
+                     [('job_id', 'in', job_child_ids)])
                 if len(ee_ids) > 0:
                     parent_id = False
                     for ee in job.employee_ids:
                         parent_id = ee.id
                     if parent_id:
                         ee_obj.write(
-                            cr, uid, ee_ids, {
+                             ee_ids, {
                                 'parent_id': parent_id,
                             }, context=context
                         )
 
         return res
 
-    def write(self, cr, uid, ids, vals, context=None):
+    def write(self,  ids, vals, context=None):
 
         res = super(hr_contract, self).write(
-            cr, uid, ids, vals, context=context)
+             ids, vals, context=context)
 
         if not vals.get('job_id', False):
             return res
@@ -212,7 +212,7 @@ class hr_contract(orm.Model):
         ee_obj = self.pool.get('hr.employee')
 
         job = self.pool.get('hr.job').browse(
-            cr, uid, vals['job_id'], context=context)
+             vals['job_id'], context=context)
 
         # Write the employee's manager
         if job and job.parent_id:
@@ -220,8 +220,8 @@ class hr_contract(orm.Model):
             for ee in job.parent_id.employee_ids:
                 parent_id = ee.id
             if parent_id:
-                for contract in self.browse(cr, uid, ids, context=context):
-                    ee_obj.write(cr, uid, contract.employee_id.id, {
+                for contract in self.browse( ids, context=context):
+                    ee_obj.write( contract.employee_id.id, {
                                  'parent_id': parent_id}, context=context)
 
         # Write any employees with jobs that are immediate descendants of this
@@ -231,7 +231,7 @@ class hr_contract(orm.Model):
             [job_child_ids.append(child.id) for child in job.child_ids]
             if len(job_child_ids) > 0:
                 ee_ids = ee_obj.search(
-                    cr, uid, [('job_id', 'in', job_child_ids),
+                     [('job_id', 'in', job_child_ids),
                               ('active', '=', True)])
                 if len(ee_ids) > 0:
                     parent_id = False
@@ -239,7 +239,7 @@ class hr_contract(orm.Model):
                         parent_id = ee.id
                     if parent_id:
                         ee_obj.write(
-                            cr, uid, ee_ids, {
+                             ee_ids, {
                                 'parent_id': parent_id,
                             }, context=context
                         )

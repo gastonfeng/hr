@@ -25,14 +25,14 @@ from openerp.osv import orm
 class hr_payslip(orm.Model):
     _inherit = 'hr.payslip'
 
-    def compute_sheet(self, cr, uid, ids, context=None):
+    def compute_sheet(self,  ids, context=None):
         super(hr_payslip, self).compute_sheet(
-            cr, uid, ids, context=context
+             ids, context=context
         )
-        self.compute_lines_ytd(cr, uid, ids, context=context)
+        self.compute_lines_ytd( ids, context=context)
 
-    def compute_lines_ytd(self, cr, uid, ids, context=None):
-        for payslip in self.browse(cr, uid, ids, context=context):
+    def compute_lines_ytd(self,  ids, context=None):
+        for payslip in self.browse( ids, context=context):
             # Create a dict of the required lines that will be used
             # to sum amounts over the payslips
             line_dict = {
@@ -42,7 +42,7 @@ class hr_payslip(orm.Model):
             date_from = payslip.date_from[0:4] + "-01-01"
 
             employee_payslip_ids = self.search(
-                cr, uid, [
+                 [
                     ('employee_id', '=', payslip.employee_id.id),
                     ('date_from', '>=', date_from),
                     ('date_to', '<=', payslip.date_to),
@@ -50,7 +50,7 @@ class hr_payslip(orm.Model):
                 ], context=context)
 
             employee_payslips = self.browse(
-                cr, uid, employee_payslip_ids, context=context)
+                 employee_payslip_ids, context=context)
 
             # Iterate one time over each line of each payslip of the
             # employee since the beginning of the year and sum required
@@ -67,4 +67,4 @@ class hr_payslip(orm.Model):
             for line in payslip.line_ids:
                 amount = line_dict[line.salary_rule_id.code] + line.total
                 self.pool['hr.payslip.line'].write(
-                    cr, uid, [line.id], {'total_ytd': amount}, context=context)
+                     [line.id], {'total_ytd': amount}, context=context)

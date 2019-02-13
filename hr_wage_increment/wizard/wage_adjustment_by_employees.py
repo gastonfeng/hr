@@ -53,7 +53,7 @@ class hr_payslip_employees(orm.TransientModel):
 
         return result
 
-    def create_adjustments(self, cr, uid, ids, context=None):
+    def create_adjustments(self,  ids, context=None):
 
         emp_pool = self.pool.get('hr.employee')
         adj_pool = self.pool.get('hr.contract.wage.increment')
@@ -62,7 +62,7 @@ class hr_payslip_employees(orm.TransientModel):
         if context is None:
             context = {}
 
-        data = self.read(cr, uid, ids, context=context)[0]
+        data = self.read( ids, context=context)[0]
         if not data['employee_ids']:
             raise orm.except_orm(
                 _("Warning !"),
@@ -76,11 +76,11 @@ class hr_payslip_employees(orm.TransientModel):
                 'Unable to determine wage adjustment run ID'))
 
         run_data = run_pool.read(
-            cr, uid, run_id, ['effective_date', 'type', 'adjustment_amount'],
+             run_id, ['effective_date', 'type', 'adjustment_amount'],
             context=context)
 
         for emp in emp_pool.browse(
-                cr, uid, data['employee_ids'], context=context):
+                 data['employee_ids'], context=context):
 
             # skip contracts that don't start before the effective date of the
             # adjustment
@@ -98,7 +98,7 @@ class hr_payslip_employees(orm.TransientModel):
                 ),
                 'run_id': run_id,
             }
-            adj_pool.create(cr, uid, res, context=context)
+            adj_pool.create( res, context=context)
 
         return {
             'type': 'ir.actions.act_window_close',

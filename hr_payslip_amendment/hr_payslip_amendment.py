@@ -80,19 +80,19 @@ class hr_payslip_amendment(orm.Model):
         'state': 'draft',
     }
 
-    def onchange_employee(self, cr, uid, ids, employee_id, context=None):
+    def onchange_employee(self,  ids, employee_id, context=None):
 
         if not employee_id:
             return {}
         ee = self.pool.get('hr.employee').browse(
-            cr, uid, employee_id, context=context)
+             employee_id, context=context)
         name = _('Pay Slip Amendment: %s (%s)') % (ee.name, ee.employee_no)
         val = {'name': name}
         return {'value': val}
 
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self,  ids, context=None):
 
-        for psa in self.browse(cr, uid, ids, context=context):
+        for psa in self.browse( ids, context=context):
             if psa.state in ['validate', 'done']:
                 raise orm.except_orm(
                     _('Invalid Action'),
@@ -101,5 +101,5 @@ class hr_payslip_amendment(orm.Model):
                 )
 
         return super(hr_payslip_amendment, self).unlink(
-            cr, uid, ids, context=context
+             ids, context=context
         )

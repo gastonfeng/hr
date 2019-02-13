@@ -47,15 +47,15 @@ class compute_alerts(orm.TransientModel):
         ),
     }
 
-    def generate_alerts(self, cr, uid, ids, context=None):
+    def generate_alerts(self,  ids, context=None):
 
         alert_obj = self.pool.get('hr.schedule.alert')
 
-        data = self.read(cr, uid, ids, context=context)[0]
+        data = self.read( ids, context=context)[0]
         dStart = datetime.strptime(data['date_start'], '%Y-%m-%d').date()
         dEnd = datetime.strptime(data['date_end'], '%Y-%m-%d').date()
         dToday = datetime.strptime(fields.date.context_today(
-            self, cr, uid, context=context), '%Y-%m-%d').date()
+            self,  context=context), '%Y-%m-%d').date()
         if dToday < dEnd:
             dEnd = dToday
 
@@ -63,7 +63,7 @@ class compute_alerts(orm.TransientModel):
         for employee_id in data['employee_ids']:
             while dNext <= dEnd:
                 alert_obj.compute_alerts_by_employee(
-                    cr, uid, employee_id, dNext.strftime('%Y-%m-%d'),
+                     employee_id, dNext.strftime('%Y-%m-%d'),
                     context=context
                 )
                 dNext += relativedelta(days=+1)

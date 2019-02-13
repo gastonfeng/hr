@@ -45,7 +45,7 @@ class wage_increment(orm.Model):
         ),
     }
 
-    def _get_contract_id(self, cr, uid, context=None):
+    def _get_contract_id(self,  context=None):
 
         if context is None:
             context = {}
@@ -55,22 +55,22 @@ class wage_increment(orm.Model):
 
     _rec_name = 'effective_date'
 
-    def action_wage_increment(self, cr, uid, ids, context=None):
+    def action_wage_increment(self,  ids, context=None):
 
         hr_obj = self.pool.get('hr.contract')
 
         # Copy the contract and adjust start/end dates and wage accordingly.
         #
-        for wi in self.browse(cr, uid, ids, context=context):
+        for wi in self.browse( ids, context=context):
 
             data = hr_obj.copy_data(
-                cr, uid, wi.contract_id.id, context=context)
+                 wi.contract_id.id, context=context)
             data['name'] = data['name'] + \
                 _(' - Wage Change ') + wi.effective_date
             data['wage'] = wi.wage
             data['date_start'] = wi.effective_date
 
-            c_id = hr_obj.create(cr, uid, data, context=context)
+            c_id = hr_obj.create( data, context=context)
             if c_id:
                 effective_date = datetime.strptime(wi.effective_date,
                                                    '%Y-%m-%d').date()
@@ -78,7 +78,7 @@ class wage_increment(orm.Model):
                 vals = {
                     'date_end': date_end.stftime('%Y-%m-%d'),
                 }
-                hr_obj.write(cr, uid, wi.contract_id.id, vals, context=context)
+                hr_obj.write( wi.contract_id.id, vals, context=context)
 
         return {
             'type': 'ir.actions.act_window_close'

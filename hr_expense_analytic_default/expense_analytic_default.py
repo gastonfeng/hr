@@ -44,13 +44,13 @@ class hr_expense_expense(orm.Model):
             domain=[('type', 'not in', ('view', 'template'))]),
         }
 
-    def onchange_employee_id(self, cr, uid, ids, employee_id, context=None):
+    def onchange_employee_id(self,  ids, employee_id, context=None):
         res = super(hr_expense_expense, self).onchange_employee_id(
-            cr, uid, ids, employee_id, context=context)
+             ids, employee_id, context=context)
         analytic_account_id = False
         if employee_id:
             employee = self.pool['hr.employee'].browse(
-                cr, uid, employee_id, context=context)
+                 employee_id, context=context)
             analytic_account_id = \
                 employee.default_analytic_account_id.id or False
         res['value']['default_analytic_account_id'] = analytic_account_id

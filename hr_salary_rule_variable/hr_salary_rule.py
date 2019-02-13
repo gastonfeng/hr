@@ -34,11 +34,11 @@ class hr_salary_rule(orm.Model):
 
     # Rewrite compute_rule (from hr_payroll module)
     # so that the python script in the rule may reference the rule itself
-    def compute_rule(self, cr, uid, rule_id, localdict, context=None):
+    def compute_rule(self,  rule_id, localdict, context=None):
 
         # Add reference to the rule
         localdict['rule_id'] = rule_id
 
         return super(hr_salary_rule, self).compute_rule(
-            cr, uid, rule_id, localdict, context=context
+             rule_id, localdict, context=context
         )

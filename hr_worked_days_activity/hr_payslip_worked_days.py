@@ -33,7 +33,7 @@ class hr_payslip_worked_days(orm.Model):
         ),
     }
 
-    def _get_default_activity(self, cr, uid, context=None):
+    def _get_default_activity(self,  context=None):
         """
         This function searches activities and return an activity.
 
@@ -46,11 +46,11 @@ class hr_payslip_worked_days(orm.Model):
         another.
         """
         activities = self.pool['hr.activity'].search(
-            cr, uid, [('type', '=', 'leave')], context=context
+             [('type', '=', 'leave')], context=context
         )
         return activities and activities[0] or False
 
     _defaults = {
-        'activity_id': lambda self, cr, uid, context=None:
-        self._get_default_activity(cr, uid, context=context)
+        'activity_id': lambda self,  context=None:
+        self._get_default_activity( context=context)
     }

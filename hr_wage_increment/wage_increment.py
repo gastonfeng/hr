@@ -36,10 +36,10 @@ class wage_increment(models.Model):
     _description = 'HR Contract Wage Adjustment'
 
     def _calculate_difference(
-            self, cr, uid, ids, field_name, args, context=None):
+            self,  ids, field_name, args, context=None):
 
         res = dict.fromkeys(ids)
-        for incr in self.browse(cr, uid, ids, context=context):
+        for incr in self.browse( ids, context=context):
             if incr.wage >= incr.contract_id.wage:
                 percent = ((incr.wage / incr.contract_id.wage) - 1.0) * 100.0
             else:
@@ -51,10 +51,10 @@ class wage_increment(models.Model):
 
         return res
 
-    def _get_department(self, cr, uid, ids, field_name, arg, context=None):
+    def _get_department(self,  ids, field_name, arg, context=None):
 
         res = dict.fromkeys(ids, False)
-        for incr in self.browse(cr, uid, ids, context=context):
+        for incr in self.browse( ids, context=context):
             res[incr.id] = incr.employee_id.department_id.id,
 
         return res
@@ -82,28 +82,28 @@ class wage_increment(models.Model):
         readonly=True, )
     run_id = fields.Many2one('hr.contract.wage.increment.run', 'Batch Run', readonly=True, ondelete='cascade', )
 
-    def _get_contract_data(self, cr, uid, field_list, context=None):
+    def _get_contract_data(self,  field_list, context=None):
 
         if context is None:
             context = {}
-        employee_id = self._get_employee(cr, uid, context=context)
+        employee_id = self._get_employee( context=context)
         ee_data = self.pool.get('hr.employee').read(
-            cr, uid, employee_id, ['contract_id'], context=context)
+             employee_id, ['contract_id'], context=context)
         contract_id = ee_data.get('contract_id', False)[0]
         if not contract_id:
             return False
 
         data = self.pool.get('hr.contract').read(
-            cr, uid, contract_id, field_list, context=context)
+             contract_id, field_list, context=context)
 
         return data
 
-    def _get_contract_id(self, cr, uid, context=None):
+    def _get_contract_id(self,  context=None):
 
-        data = self._get_contract_data(cr, uid, ['id'], context)
+        data = self._get_contract_data( ['id'], context)
         return data.get('id', False)
 
-    def _get_employee(self, cr, uid, context=None):
+    def _get_employee(self,  context=None):
 
         if context is None:
             context = {}
@@ -111,14 +111,14 @@ class wage_increment(models.Model):
 
         return employee_id
 
-    def _get_effective_date(self, cr, uid, context=None):
+    def _get_effective_date(self,  context=None):
 
-        contract_id = self._get_contract_id(cr, uid, context=context)
+        contract_id = self._get_contract_id( context=context)
         if not contract_id:
             return False
 
         contract = self.pool.get('hr.contract').browse(
-            cr, uid, contract_id, context=context)
+             contract_id, context=context)
         if contract.pps_id:
             first_day = 1
             if contract.pps_id.type == 'monthly':
@@ -144,9 +144,9 @@ class wage_increment(models.Model):
 
     _rec_name = 'effective_date'
 
-    def _check_state(self, cr, uid, wage_incr, context=None):
+    def _check_state(self,  wage_incr, context=None):
 
-        wage_incr_ids = self.search(cr, uid, [
+        wage_incr_ids = self.search( [
             ('contract_id', '=', wage_incr.contract_id.id),
             ('state', 'in', [
                 'draft', 'confirm', 'approved']),
@@ -155,7 +155,7 @@ class wage_increment(models.Model):
             context=context)
         if len(wage_incr_ids) > 0:
             data = self.pool.get('hr.contract').read(
-                cr, uid, wage_incr.contract_id.id, ['name'], context=context)
+                 wage_incr.contract_id.id, ['name'], context=context)
             raise orm.except_orm(
                 _('Warning'),
                 _('There is already another wage adjustment in progress for '
@@ -164,13 +164,13 @@ class wage_increment(models.Model):
 
         contract_obj = self.pool.get('hr.contract')
         data = contract_obj.read(
-            cr, uid, wage_incr.contract_id.id, ['state', 'date_end'],
+             wage_incr.contract_id.id, ['state', 'date_end'],
             context=context
         )
 
         if data['state'] in ['draft', 'done']:
             data = self.pool.get('hr.contract').read(
-                cr, uid, wage_incr.contract_id.id, ['name'], context=context)
+                 wage_incr.contract_id.id, ['name'], context=context)
             raise orm.except_orm(
                 _('Warning!'),
                 _('The current state of the contract does not permit a wage '
@@ -184,7 +184,7 @@ class wage_increment(models.Model):
                 wage_incr.effective_date, DEFAULT_SERVER_DATE_FORMAT)
             if dEffective >= dContractEnd:
                 data = self.pool.get('hr.contract').read(
-                    cr, uid, wage_incr.contract_id.id, ['name'],
+                     wage_incr.contract_id.id, ['name'],
                     context=context
                 )
                 raise orm.except_orm(
@@ -194,7 +194,7 @@ class wage_increment(models.Model):
                 )
         return True
 
-    def action_wage_increment(self, cr, uid, ids, context=None):
+    def action_wage_increment(self,  ids, context=None):
 
         hr_obj = self.pool.get('hr.contract')
 
@@ -203,12 +203,12 @@ class wage_increment(models.Model):
 
         # Copy the contract and adjust start/end dates and wage accordingly.
         #
-        for wi in self.browse(cr, uid, ids, context=context):
+        for wi in self.browse( ids, context=context):
 
             if -0.01 < wi.wage_difference < 0.01:
                 continue
 
-            self._check_state(cr, uid, wi, context=context)
+            self._check_state( wi, context=context)
 
             default = {
                 'wage': wi.wage,
@@ -220,7 +220,7 @@ class wage_increment(models.Model):
                 'trial_date_end': False,
             }
             data = hr_obj.copy_data(
-                cr, uid, wi.contract_id.id, default=default, context=context)
+                 wi.contract_id.id, default=default, context=context)
             notes = data.get('notes', False)
             if not notes:
                 notes = ''
@@ -229,7 +229,7 @@ class wage_increment(models.Model):
                   'contract: ') + wi.contract_id.name
             data['notes'] = notes
 
-            c_id = hr_obj.create(cr, uid, data, context=context)
+            c_id = hr_obj.create( data, context=context)
             if c_id:
                 if wi.contract_id.notes:
                     notes = wi.contract_id.notes
@@ -251,13 +251,13 @@ class wage_increment(models.Model):
                 vals['date_end'] = datetime.strptime(
                     wi.effective_date, '%Y-%m-%d').date() + \
                     relativedelta(days=-1)
-                hr_obj.write(cr, uid, wi.contract_id.id, vals, context=context)
+                hr_obj.write( wi.contract_id.id, vals, context=context)
                 wkf.trg_validate(
                     uid, 'hr.contract', wi.contract_id.id, 'signal_done', cr)
 
         return
 
-    def create(self, cr, uid, vals, context=None):
+    def create(self,  vals, context=None):
 
         contract_id = vals.get('contract_id', False)
 
@@ -266,7 +266,7 @@ class wage_increment(models.Model):
                 contract_id = context.get('active_id')
 
         data = self.pool.get(
-            'hr.contract').read(cr, uid, contract_id, ['name', 'date_start'],
+            'hr.contract').read( contract_id, ['name', 'date_start'],
                                 context=context)
 
         # Check that the contract start date is before the effective date
@@ -277,7 +277,7 @@ class wage_increment(models.Model):
                   'contract start date. Contract: %s.') % (data['name'])
             )
 
-        wage_incr_ids = self.search(cr, uid, [
+        wage_incr_ids = self.search( [
             ('contract_id', '=', contract_id),
             ('state', 'in', [
                 'draft', 'confirm', 'approved']),
@@ -291,24 +291,24 @@ class wage_increment(models.Model):
             )
 
         return super(wage_increment, self).create(
-            cr, uid, vals, context=context
+             vals, context=context
         )
 
-    def do_signal_confirm(self, cr, uid, ids, context=None):
+    def do_signal_confirm(self,  ids, context=None):
 
-        for wi in self.browse(cr, uid, ids, context=context):
-            self._check_state(cr, uid, wi, context=context)
-            self.write(cr, uid, wi.id, {'state': 'confirm'}, context=context)
+        for wi in self.browse( ids, context=context):
+            self._check_state( wi, context=context)
+            self.write( wi.id, {'state': 'confirm'}, context=context)
 
-    def do_signal_approve(self, cr, uid, ids, context=None):
+    def do_signal_approve(self,  ids, context=None):
 
         for i in ids:
-            self.action_wage_increment(cr, uid, [i], context=context)
-            self.write(cr, uid, i, {'state': 'approve'}, context=context)
+            self.action_wage_increment( [i], context=context)
+            self.write( i, {'state': 'approve'}, context=context)
 
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self,  ids, context=None):
 
-        for incr in self.browse(cr, uid, ids, context=context):
+        for incr in self.browse( ids, context=context):
             if incr.state in ['approve']:
                 raise orm.except_orm(
                     _('The record cannot be deleted!'),
@@ -317,7 +317,7 @@ You may not delete a record that is in a %s state:
 Employee: %s""") % (incr.state, incr.employee_id.name))
 
         return super(wage_increment, self).unlink(
-            cr, uid, ids, context=context
+             ids, context=context
         )
 
 
@@ -383,23 +383,23 @@ class wage_increment_run(orm.Model):
         'state': 'draft',
     }
 
-    def _needaction_domain_get(self, cr, uid, context=None):
+    def _needaction_domain_get(self,  context=None):
 
         users_obj = self.pool.get('res.users')
         domain = []
 
-        if users_obj.has_group(cr, uid, 'hr_security.group_hr_director'):
+        if users_obj.has_group( 'hr_security.group_hr_director'):
             domain = [('state', 'in', ['confirm'])]
             return domain
 
         return False
 
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self,  ids, context=None):
 
         if isinstance(ids, (int, long)):
             ids = [ids]
 
-        for run in self.browse(cr, uid, ids, context=context):
+        for run in self.browse( ids, context=context):
             if run.state in ['approve']:
                 raise orm.except_orm(
                     _('The adjustment run cannot be deleted!'),
@@ -407,31 +407,31 @@ class wage_increment_run(orm.Model):
                       '%s state.') % run.state)
 
         return super(wage_increment_run, self).unlink(
-            cr, uid, ids, context=context
+             ids, context=context
         )
 
-    def _state(self, cr, uid, ids, signal, state, context=None):
+    def _state(self,  ids, signal, state, context=None):
 
         wkf = netsvc.LocalService('workflow')
-        for run in self.browse(cr, uid, ids, context=context):
+        for run in self.browse( ids, context=context):
             [wkf.trg_validate(uid, 'hr.contract.wage.increment', incr.id,
                               signal, cr)
              for incr in run.increment_ids]
-            self.write(cr, uid, run.id, {'state': state}, context=context)
+            self.write( run.id, {'state': state}, context=context)
 
         return True
 
-    def state_confirm(self, cr, uid, ids, context=None):
+    def state_confirm(self,  ids, context=None):
 
-        return self._state(cr, uid, ids, 'signal_confirm', 'confirm', context)
+        return self._state( ids, 'signal_confirm', 'confirm', context)
 
-    def state_approve(self, cr, uid, ids, context=None):
+    def state_approve(self,  ids, context=None):
 
-        return self._state(cr, uid, ids, 'signal_approve', 'approve', context)
+        return self._state( ids, 'signal_approve', 'approve', context)
 
-    def state_decline(self, cr, uid, ids, context=None):
+    def state_decline(self,  ids, context=None):
 
-        return self._state(cr, uid, ids, 'signal_decline', 'decline', context)
+        return self._state( ids, 'signal_decline', 'decline', context)
 
 
 class hr_contract(orm.Model):
@@ -439,17 +439,17 @@ class hr_contract(orm.Model):
     _name = 'hr.contract'
     _inherit = 'hr.contract'
 
-    def state_pending_done(self, cr, uid, ids, context=None):
+    def state_pending_done(self,  ids, context=None):
 
         for i in ids:
             wi_ids = self.pool.get('hr.contract.wage.increment').search(
-                cr, uid, [
+                 [
                     ('contract_id', '=', i),
                     ('state', 'in', ['draft', 'confirm']),
                 ], context=context)
             if wi_ids:
                 data = self.pool.get('hr.contract').read(
-                    cr, uid, i, ['name'], context=context
+                     i, ['name'], context=context
                 )
                 raise orm.except_orm(
                     _('Error'),
@@ -458,5 +458,5 @@ class hr_contract(orm.Model):
                       'termination of contract %s.') % (data['name'])
                 )
         return super(hr_contract, self).state_pending_done(
-            cr, uid, ids, context=context
+             ids, context=context
         )

@@ -62,27 +62,27 @@ class hr_transfer(models.Model):
     _track = {
         'state': {
             'hr_transfer.mt_alert_xfer_confirmed':
-                lambda self, cr, uid, obj, ctx=None: obj['state'] == 'confirm',
+                lambda self,  obj, ctx=None: obj['state'] == 'confirm',
             'hr_transfer.mt_alert_xfer_pending':
-                lambda self, cr, uid, obj, ctx=None: obj['state'] == 'pending',
+                lambda self,  obj, ctx=None: obj['state'] == 'pending',
             'hr_transfer.mt_alert_xfer_done':
-                lambda self, cr, uid, obj, ctx=None: obj['state'] == 'done',
+                lambda self,  obj, ctx=None: obj['state'] == 'done',
         },
     }
 
-    def _needaction_domain_get(self, cr, uid, context=None):
+    def _needaction_domain_get(self,  context=None):
 
         users_obj = self.pool.get('res.users')
 
-        if users_obj.has_group(cr, uid, 'base.group_hr_manager'):
+        if users_obj.has_group( 'base.group_hr_manager'):
             domain = [('state', '=', 'confirm')]
             return domain
 
         return False
 
-    def unlink(self, cr, uid, ids, context=None):
+    def unlink(self,  ids, context=None):
 
-        for xfer in self.browse(cr, uid, ids, context=context):
+        for xfer in self.browse( ids, context=context):
             if xfer.state not in ['draft']:
                 raise orm.except_orm(
                     _('Unable to Delete Transfer!'),
@@ -90,24 +90,24 @@ class hr_transfer(models.Model):
                       ' or create another transfer to undo it.')
                 )
 
-        return super(hr_transfer, self).unlink(cr, uid, ids, context=context)
+        return super(hr_transfer, self).unlink( ids, context=context)
 
-    def onchange_employee(self, cr, uid, ids, employee_id, context=None):
+    def onchange_employee(self,  ids, employee_id, context=None):
 
         res = {'value': {'src_id': False, 'src_contract_id': False}}
 
         if employee_id:
             ee = self.pool.get('hr.employee').browse(
-                cr, uid, employee_id, context=context)
+                 employee_id, context=context)
             res['value']['src_id'] = ee.contract_id.job_id.id
             res['value']['src_contract_id'] = ee.contract_id.id
 
         return res
 
-    def effective_date_in_future(self, cr, uid, ids, context=None):
+    def effective_date_in_future(self,  ids, context=None):
 
         today = datetime.now().date()
-        for xfer in self.browse(cr, uid, ids, context=context):
+        for xfer in self.browse( ids, context=context):
             effective_date = datetime.strptime(
                 xfer.date, DEFAULT_SERVER_DATE_FORMAT).date()
             if effective_date <= today:
@@ -115,11 +115,11 @@ class hr_transfer(models.Model):
 
         return True
 
-    def _check_state(self, cr, uid, contract_id, effective_date, context=None):
+    def _check_state(self,  contract_id, effective_date, context=None):
 
         contract_obj = self.pool.get('hr.contract')
         data = contract_obj.read(
-            cr, uid, contract_id, ['state', 'date_end'], context=context)
+             contract_id, ['state', 'date_end'], context=context)
 
         if data['state'] not in [
             'trial', 'trial_ending', 'open', 'contract_ending'
@@ -144,7 +144,7 @@ class hr_transfer(models.Model):
         return True
 
     def transfer_contract(
-        self, cr, uid, contract_id, job_id, xfer_id, effective_date,
+        self,  contract_id, job_id, xfer_id, effective_date,
         context=None
     ):
 
@@ -163,9 +163,9 @@ class hr_transfer(models.Model):
             'trial_date_end': False,
         }
         data = contract_obj.copy_data(
-            cr, uid, contract_id, default=default, context=context)
+             contract_id, default=default, context=context)
 
-        c_id = contract_obj.create(cr, uid, data, context=context)
+        c_id = contract_obj.create( data, context=context)
         if c_id:
             vals = {}
             wkf = netsvc.LocalService('workflow')
@@ -177,60 +177,60 @@ class hr_transfer(models.Model):
             # change)
             vals['date_end'] = datetime.strptime(
                 effective_date, '%Y-%m-%d').date() + relativedelta(days=-1)
-            contract_obj.write(cr, uid, contract_id, vals, context=context)
+            contract_obj.write( contract_id, vals, context=context)
             wkf.trg_validate(
                 uid, 'hr.contract', contract_id, 'signal_done', cr)
 
             # Link to the new contract
             self.pool.get(
                 'hr.department.transfer').write(
-                    cr, uid, xfer_id, {'dst_contract_id': c_id},
+                     xfer_id, {'dst_contract_id': c_id},
                     context=context)
 
         return
 
-    def state_confirm(self, cr, uid, ids, context=None):
+    def state_confirm(self,  ids, context=None):
 
-        for xfer in self.browse(cr, uid, ids, context=context):
+        for xfer in self.browse( ids, context=context):
             self._check_state(
-                cr, uid, xfer.src_contract_id.id, xfer.date, context=context)
-            self.write(cr, uid, xfer.id, {'state': 'confirm'}, context=context)
+                 xfer.src_contract_id.id, xfer.date, context=context)
+            self.write( xfer.id, {'state': 'confirm'}, context=context)
 
         return True
 
-    def state_done(self, cr, uid, ids, context=None):
+    def state_done(self,  ids, context=None):
 
         employee_obj = self.pool.get('hr.employee')
         today = datetime.now().date()
 
-        for xfer in self.browse(cr, uid, ids, context=context):
+        for xfer in self.browse( ids, context=context):
             if datetime.strptime(
                 xfer.date, DEFAULT_SERVER_DATE_FORMAT
             ).date() <= today:
                 self._check_state(
-                    cr, uid, xfer.src_contract_id.id, xfer.date,
+                     xfer.src_contract_id.id, xfer.date,
                     context=context)
                 employee_obj.write(
-                    cr, uid, xfer.employee_id.id, {
+                     xfer.employee_id.id, {
                         'department_id': xfer.dst_department_id.id},
                     context=context)
                 self.transfer_contract(
-                    cr, uid, xfer.src_contract_id.id, xfer.dst_id.id,
+                     xfer.src_contract_id.id, xfer.dst_id.id,
                     xfer.id, xfer.date, context=context)
                 self.write(
-                    cr, uid, xfer.id, {'state': 'done'}, context=context)
+                     xfer.id, {'state': 'done'}, context=context)
             else:
                 return False
 
         return True
 
-    def try_pending_department_transfers(self, cr, uid, context=None):
+    def try_pending_department_transfers(self,  context=None):
         """Completes pending departmental transfers. Called from
         the scheduler."""
 
         xfer_obj = self.pool.get('hr.department.transfer')
         today = datetime.now().date()
-        xfer_ids = xfer_obj.search(cr, uid, [
+        xfer_ids = xfer_obj.search( [
             ('state', '=', 'pending'),
             ('date', '<=', today.strftime(
                 DEFAULT_SERVER_DATE_FORMAT)),
@@ -239,6 +239,6 @@ class hr_transfer(models.Model):
         wkf = netsvc.LocalService('workflow')
         [wkf.trg_validate(
             uid, 'hr.department.transfer', xfer.id, 'signal_done', cr)
-         for xfer in self.browse(cr, uid, xfer_ids, context=context)]
+         for xfer in self.browse( xfer_ids, context=context)]
 
         return True

@@ -64,19 +64,19 @@ class hr_payroll_register(orm.Model):
             _('Payroll Register description must be unique.')),
     ]
 
-    def _get_default_name(self, cr, uid, context=None):
+    def _get_default_name(self,  context=None):
 
         nMonth = datetime.now().strftime('%B')
         year = datetime.now().year
         name = _('Payroll for the Month of %s %s' % (nMonth, year))
         return name
 
-    def _get_company(self, cr, uid, context=None):
+    def _get_company(self,  context=None):
 
         users_pool = self.pool.get('res.users')
-        return users_pool.browse(cr, uid,
+        return users_pool.browse(
                                  users_pool.search(
-                                     cr, uid, [(
+                                      [(
                                          'id', '=', uid)], context=context),
                                  context=context)[0].company_id.id
 
@@ -86,10 +86,10 @@ class hr_payroll_register(orm.Model):
         'company_id': _get_company,
     }
 
-    def action_delete_runs(self, cr, uid, ids, context=None):
+    def action_delete_runs(self,  ids, context=None):
 
         pool = self.pool.get('hr.payslip.run')
         ids = pool.search(
-            cr, uid, [('register_id', 'in', ids)], context=context)
-        pool.unlink(cr, uid, ids, context=context)
+             [('register_id', 'in', ids)], context=context)
+        pool.unlink( ids, context=context)
         return True

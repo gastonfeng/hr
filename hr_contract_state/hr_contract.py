@@ -34,21 +34,21 @@ class hr_contract(orm.Model):
     _name = 'hr.contract'
     _inherit = ['hr.contract', 'mail.thread', 'ir.needaction_mixin']
 
-    def _get_ids_from_employee(self, cr, uid, ids, context=None):
+    def _get_ids_from_employee(self,  ids, context=None):
 
         res = []
         employee_pool = self.pool['hr.employee']
-        for ee in employee_pool.browse(cr, uid, ids, context=context):
+        for ee in employee_pool.browse( ids, context=context):
             for contract in ee.contract_ids:
                 if contract.state not in ['pending_done', 'done']:
                     res.append(contract.id)
         return res
 
-    def _get_department(self, cr, uid, ids, field_name, arg, context=None):
+    def _get_department(self,  ids, field_name, arg, context=None):
 
         res = dict.fromkeys(ids, False)
         states = ['pending_done', 'done']
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             if contract.department_id and contract.state in states:
                 res[contract.id] = contract.department_id.id
             elif contract.employee_id.department_id:
@@ -141,19 +141,19 @@ class hr_contract(orm.Model):
         },
     }
 
-    def _needaction_domain_get(self, cr, uid, context=None):
+    def _needaction_domain_get(self,  context=None):
 
         users_obj = self.pool.get('res.users')
         domain = []
 
-        if users_obj.has_group(cr, uid, 'base.group_hr_manager'):
+        if users_obj.has_group( 'base.group_hr_manager'):
             domain = [
                 ('state', 'in', ['draft', 'contract_ending', 'trial_ending'])]
             return domain
 
         return False
 
-    def onchange_job(self, cr, uid, ids, job_id, context=None):
+    def onchange_job(self,  ids, job_id, context=None):
 
         import logging
         _l = logging.getLogger(__name__)
@@ -162,24 +162,24 @@ class hr_contract(orm.Model):
         if isinstance(ids, (int, long)):
             ids = [ids]
         if ids:
-            contract = self.browse(cr, uid, ids[0], context=None)
+            contract = self.browse( ids[0], context=None)
             if contract.state != 'draft':
                 return res
         return super(hr_contract, self).onchange_job(
-            cr, uid, ids, job_id, context=context
+             ids, job_id, context=context
         )
 
-    def condition_trial_period(self, cr, uid, ids, context=None):
+    def condition_trial_period(self,  ids, context=None):
 
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             if not contract.trial_date_start:
                 return False
         return True
 
-    def try_signal_ending_contract(self, cr, uid, context=None):
+    def try_signal_ending_contract(self,  context=None):
 
         d = datetime.now().date() + relativedelta(days=+30)
-        ids = self.search(cr, uid, [
+        ids = self.search( [
             ('state', '=', 'open'),
             ('date_end', '<=', d.strftime(
                 DEFAULT_SERVER_DATE_FORMAT))
@@ -188,14 +188,14 @@ class hr_contract(orm.Model):
             return
 
         wkf = netsvc.LocalService('workflow')
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             wkf.trg_validate(
                 uid, 'hr.contract', contract.id, 'signal_ending_contract', cr
             )
 
-    def try_signal_contract_completed(self, cr, uid, context=None):
+    def try_signal_contract_completed(self,  context=None):
         d = datetime.now().date()
-        ids = self.search(cr, uid, [
+        ids = self.search( [
             ('state', '=', 'open'),
             ('date_end', '<', d.strftime(
                 DEFAULT_SERVER_DATE_FORMAT))
@@ -204,15 +204,15 @@ class hr_contract(orm.Model):
             return
 
         wkf = netsvc.LocalService('workflow')
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             wkf.trg_validate(
                 uid, 'hr.contract', contract.id, 'signal_pending_done', cr
             )
 
-    def try_signal_ending_trial(self, cr, uid, context=None):
+    def try_signal_ending_trial(self,  context=None):
 
         d = datetime.now().date() + relativedelta(days=+10)
-        ids = self.search(cr, uid, [
+        ids = self.search( [
             ('state', '=', 'trial'),
             ('trial_date_end', '<=', d.strftime(
                 DEFAULT_SERVER_DATE_FORMAT))
@@ -221,15 +221,15 @@ class hr_contract(orm.Model):
             return
 
         wkf = netsvc.LocalService('workflow')
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             wkf.trg_validate(
                 uid, 'hr.contract', contract.id, 'signal_ending_trial', cr
             )
 
-    def try_signal_open(self, cr, uid, context=None):
+    def try_signal_open(self,  context=None):
 
         d = datetime.now().date() + relativedelta(days=-5)
-        ids = self.search(cr, uid, [
+        ids = self.search( [
             ('state', '=', 'trial_ending'),
             ('trial_date_end', '<=', d.strftime(
                 DEFAULT_SERVER_DATE_FORMAT))
@@ -238,34 +238,34 @@ class hr_contract(orm.Model):
             return
 
         wkf = netsvc.LocalService('workflow')
-        for contract in self.browse(cr, uid, ids, context=context):
+        for contract in self.browse( ids, context=context):
             wkf.trg_validate(
                 uid, 'hr.contract', contract.id, 'signal_open', cr
             )
 
-    def onchange_start(self, cr, uid, ids, date_start, context=None):
+    def onchange_start(self,  ids, date_start, context=None):
         return {
             'value': {
                 'trial_date_start': date_start,
             },
         }
 
-    def state_trial(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'trial'}, context=context)
+    def state_trial(self,  ids, context=None):
+        self.write( ids, {'state': 'trial'}, context=context)
         return True
 
-    def state_open(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'open'}, context=context)
+    def state_open(self,  ids, context=None):
+        self.write( ids, {'state': 'open'}, context=context)
         return True
 
-    def state_pending_done(self, cr, uid, ids, context=None):
-        self.write(cr, uid, ids, {'state': 'pending_done'}, context=context)
+    def state_pending_done(self,  ids, context=None):
+        self.write( ids, {'state': 'pending_done'}, context=context)
         return True
 
-    def state_done(self, cr, uid, ids, context=None):
+    def state_done(self,  ids, context=None):
         for i in ids:
             data = self.read(
-                cr, uid, i, ['date_end', 'job_id'], context=context)
+                 i, ['date_end', 'job_id'], context=context)
             vals = {'state': 'done',
                     'date_end': False,
                     'job_id': False,
@@ -276,5 +276,5 @@ class hr_contract(orm.Model):
             else:
                 vals['date_end'] = time.strftime(DEFAULT_SERVER_DATE_FORMAT)
 
-            self.write(cr, uid, ids, vals, context=context)
+            self.write( ids, vals, context=context)
         return True

@@ -35,22 +35,22 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
         self.payslip_line_model = self.registry("hr.payslip.line")
 
         self.context = self.user_model.context_get(self.cr, self.uid)
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         # Create employees
         self.employee_id = self.employee_model.create(
-            cr, uid, {'name': 'Employee 1'}, context=context)
+             {'name': 'Employee 1'}, context=context)
 
         self.employee_2_id = self.employee_model.create(
-            cr, uid, {'name': 'Employee 2'}, context=context)
+             {'name': 'Employee 2'}, context=context)
 
         # Get any existing category
         self.category_id = self.rule_category_model.search(
-            cr, uid, [], context=context)[0]
+             [], context=context)[0]
 
         # Create salary rules
         self.rule_id = self.rule_model.create(
-            cr, uid, {
+             {
                 'name': 'Test 1',
                 'sequence': 1,
                 'code': 'TEST_1',
@@ -61,7 +61,7 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
                 'amount_fix': 50,
             }, context=context)
         self.rule_2_id = self.rule_model.create(
-            cr, uid, {
+             {
                 'name': 'Test 2',
                 'sequence': 2,
                 'code': 'TEST_2',
@@ -74,7 +74,7 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
 
         # Create a structure
         self.structure_id = self.structure_model.create(
-            cr, uid, {
+             {
                 'name': 'TEST',
                 'parent_id': False,
                 'code': 'TEST',
@@ -83,7 +83,7 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
 
         # Create contracts
         self.contract_id = self.contract_model.create(
-            cr, uid, {
+             {
                 'employee_id': self.employee_id,
                 'name': 'Contract 1',
                 'wage': 50000,
@@ -92,7 +92,7 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
 
         # Create contracts
         self.contract_2_id = self.contract_model.create(
-            cr, uid, {
+             {
                 'employee_id': self.employee_2_id,
                 'name': 'Contract 2',
                 'wage': 50000,
@@ -164,7 +164,7 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
                 self.contract_id, 'TEST_2'),
         ]:
             self.payslip_line_model.create(
-                cr, uid, {
+                 {
                     'slip_id': line[0],
                     'salary_rule_id': line[1],
                     'amount': line[2],
@@ -178,37 +178,37 @@ class test_hr_payslip_line_ytd(common.TransactionCase):
                 }, context=context)
 
         self.payslip_model.write(
-            cr, uid, [self.payslip_ids[x] for x in [1, 2, 3, 5, 6]],
+             [self.payslip_ids[x] for x in [1, 2, 3, 5, 6]],
             {'state': 'done'}, context=context)
 
     def tearDown(self):
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         self.payslip_model.write(
-            cr, uid, self.payslip_ids.values(),
+             self.payslip_ids.values(),
             {'state': 'draft'}, context=context)
         self.payslip_model.unlink(
-            cr, uid, self.payslip_ids.values(), context=context)
+             self.payslip_ids.values(), context=context)
 
         self.contract_model.unlink(
-            cr, uid, [self.contract_id, self.contract_2_id], context=context)
+             [self.contract_id, self.contract_2_id], context=context)
         self.employee_model.unlink(
-            cr, uid, [self.employee_id, self.employee_2_id], context=context)
+             [self.employee_id, self.employee_2_id], context=context)
         self.rule_model.unlink(
-            cr, uid, [self.rule_id, self.rule_2_id], context=context)
+             [self.rule_id, self.rule_2_id], context=context)
         self.structure_model.unlink(
-            cr, uid, [self.structure_id], context=context)
+             [self.structure_id], context=context)
 
         super(test_hr_payslip_line_ytd, self).tearDown()
 
     def test_payslip_ytd_amount(self):
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         self.payslip_model.compute_sheet(
-            cr, uid, [self.payslip_ids[4]], context=context)
+             [self.payslip_ids[4]], context=context)
 
         payslip = self.payslip_model.browse(
-            cr, uid, self.payslip_ids[4], context=context)
+             self.payslip_ids[4], context=context)
 
         self.assertEqual(len(payslip.line_ids), 2)
         for line in payslip.line_ids:

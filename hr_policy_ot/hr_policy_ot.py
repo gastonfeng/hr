@@ -37,47 +37,47 @@ class policy_ot(orm.Model):
     # Return records with latest date first
     _order = 'date desc'
 
-    def get_codes(self, cr, uid, idx, context=None):
+    def get_codes(self,  idx, context=None):
 
         res = []
         [res.append((line.code, line.name, line.type, line.rate))
-         for line in self.browse(cr, uid, idx, context=context).line_ids]
+         for line in self.browse( idx, context=context).line_ids]
         return res
 
-    def daily_codes(self, cr, uid, idx, context=None):
+    def daily_codes(self,  idx, context=None):
 
         res = []
         [res.append((line.code, line.name))
          for line in self.browse(
-            cr, uid, idx, context=context).line_ids if line.type == 'daily']
+             idx, context=context).line_ids if line.type == 'daily']
         return res
 
-    def restday_codes(self, cr, uid, idx, context=None):
+    def restday_codes(self,  idx, context=None):
         return [
             (line.code, line.name)
-            for line in self.browse(cr, uid, idx, context=context).line_ids
+            for line in self.browse( idx, context=context).line_ids
             if line.type == 'weekly' and line.active_after_units == 'day'
         ]
 
-    def restday2_codes(self, cr, uid, idx, context=None):
+    def restday2_codes(self,  idx, context=None):
 
         res = []
         [res.append((line.code, line.name))
          for line in self.browse(
-            cr, uid, idx, context=context).line_ids if line.type == 'restday']
+             idx, context=context).line_ids if line.type == 'restday']
         return res
 
-    def weekly_codes(self, cr, uid, idx, context=None):
+    def weekly_codes(self,  idx, context=None):
         return [
             (line.code, line.name)
-            for line in self.browse(cr, uid, idx, context=context).line_ids
+            for line in self.browse( idx, context=context).line_ids
             if line.type == 'weekly' and line.active_after_units == 'min'
         ]
 
-    def holiday_codes(self, cr, uid, idx, context=None):
+    def holiday_codes(self,  idx, context=None):
         return [
             (line.code, line.name)
-            for line in self.browse(cr, uid, idx, context=context).line_ids
+            for line in self.browse( idx, context=context).line_ids
             if line.type == 'holiday'
         ]
 
@@ -86,7 +86,7 @@ class policy_line_ot(orm.Model):
 
     _name = 'hr.policy.line.ot'
 
-    def _tz_list(self, cr, uid, context=None):
+    def _tz_list(self,  context=None):
 
         res = tuple()
         for name in common_timezones:

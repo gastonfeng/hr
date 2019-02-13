@@ -35,20 +35,20 @@ class test_hr_salary_rule_variable(common.TransactionCase):
         self.structure_model = self.registry("hr.payroll.structure")
         self.context = self.user_model.context_get(self.cr, self.uid)
 
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         # Create an employee
         self.employee_id = self.employee_model.create(
-            cr, uid, {'name': 'Employee 1'}, context=context
+             {'name': 'Employee 1'}, context=context
         )
 
         # Get any existing category
         self.category_id = self.rule_category_model.search(
-            cr, uid, [], context=context)[0]
+             [], context=context)[0]
 
         # Create salary rules
         self.rule_id = self.rule_model.create(
-            cr, uid, {
+             {
                 'name': 'Test 1',
                 'sequence': 1,
                 'code': 'TEST_1',
@@ -62,7 +62,7 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
             }, context=context
         )
         self.rule_2_id = self.rule_model.create(
-            cr, uid, {
+             {
                 'name': 'Test 2',
                 'sequence': 2,
                 'code': 'TEST_2',
@@ -91,7 +91,7 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
                 'python', False, [300]),
         ]:
             self.variables[variable[0]] = self.variable_model.create(
-                cr, uid, {
+                 {
                     'salary_rule_id': variable[1],
                     'date_from': variable[2],
                     'date_to': variable[3],
@@ -103,7 +103,7 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
 
         # Create a structure
         self.structure_id = self.structure_model.create(
-            cr, uid, {
+             {
                 'name': 'TEST',
                 'parent_id': False,
                 'code': 'TEST',
@@ -113,7 +113,7 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
 
         # Create a contract for the employee
         self.contract_id = self.contract_model.create(
-            cr, uid, {
+             {
                 'employee_id': self.employee_id,
                 'name': 'Contract 1',
                 'wage': 50000,
@@ -134,27 +134,27 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
         )
 
     def tearDown(self):
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         self.payslip_model.unlink(
-            cr, uid, [self.payslip_id], context=context)
+             [self.payslip_id], context=context)
         self.contract_model.unlink(
-            cr, uid, [self.contract_id], context=context)
+             [self.contract_id], context=context)
         self.employee_model.unlink(
-            cr, uid, [self.employee_id], context=context)
+             [self.employee_id], context=context)
         self.rule_model.unlink(
-            cr, uid, [self.rule_id, self.rule_2_id], context=context)
+             [self.rule_id, self.rule_2_id], context=context)
 
         super(test_hr_salary_rule_variable, self).tearDown()
 
     def test_rule_variable(self):
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
 
         self.payslip_model.compute_sheet(
-            cr, uid, [self.payslip_id], context=context)
+             [self.payslip_id], context=context)
 
         payslip = self.payslip_model.browse(
-            cr, uid, self.payslip_id, context=context)
+             self.payslip_id, context=context)
 
         # Check that every payslip lines were tested
         self.assertTrue(len(payslip.line_ids) == 2)
@@ -170,9 +170,9 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
                 self.assertTrue(False)
 
     def test_rule_variable_with_python_code(self):
-        cr, uid, context = self.cr, self.uid, self.context
+         context = self.cr, self.uid, self.context
         self.payslip_model.write(
-            cr, uid, [self.payslip_id],
+             [self.payslip_id],
             {
                 'date_from': '2014-02-01',
                 'date_to': '2014-02-28',
@@ -180,7 +180,7 @@ result = payslip.get_rule_variable(rule_id, payslip.date_from)
             context=context),
 
         self.rule_model.write(
-            cr, uid, [self.rule_id], {
+             [self.rule_id], {
                 'amount_python_compute': """\
 variable = payslip.get_rule_variable(rule_id, payslip.date_from)
 result = variable['TEST']
@@ -188,7 +188,7 @@ result = variable['TEST']
             }, context=context)
 
         self.rule_model.write(
-            cr, uid, [self.rule_2_id], {
+             [self.rule_2_id], {
                 'amount_python_compute': """\
 variable = payslip.get_rule_variable(rule_id, payslip.date_from)
 result = variable[0]
@@ -196,10 +196,10 @@ result = variable[0]
             }, context=context)
 
         self.payslip_model.compute_sheet(
-            cr, uid, [self.payslip_id], context=context)
+             [self.payslip_id], context=context)
 
         payslip = self.payslip_model.browse(
-            cr, uid, self.payslip_id, context=context)
+             self.payslip_id, context=context)
 
         # Check that every payslip lines were tested
         self.assertTrue(len(payslip.line_ids) == 2)

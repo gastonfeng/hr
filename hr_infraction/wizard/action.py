@@ -51,14 +51,14 @@ class action_wizard(orm.TransientModel):
         ),
     }
 
-    def create_action(self, cr, uid, ids, context=None):
+    def create_action(self,  ids, context=None):
 
         if context is None:
             context = {}
         infraction_id = context.get('active_id', False)
         if not infraction_id:
             return False
-        data = self.read(cr, uid, ids[0], context=context)
+        data = self.read( ids[0], context=context)
 
         vals = {
             'infraction_id': infraction_id,
@@ -66,13 +66,13 @@ class action_wizard(orm.TransientModel):
             'memo': data.get('memo', False),
         }
         action_id = self.pool.get('hr.infraction.action').create(
-            cr, uid, vals, context=context)
+             vals, context=context)
 
         # Update state of infraction, if not already done so
         #
         infraction_obj = self.pool.get('hr.infraction')
         infraction_data = infraction_obj.read(
-            cr, uid, infraction_id, ['employee_id', 'state'],
+             infraction_id, ['employee_id', 'state'],
             context=context)
         if infraction_data['state'] == 'confirm':
             netsvc.LocalService(
@@ -96,10 +96,10 @@ class action_wizard(orm.TransientModel):
                 'action_id': action_id,
             }
             warning_id = self.pool.get('hr.infraction.warning').create(
-                cr, uid, vals, context=context
+                 vals, context=context
             )
             infraa_obj.write(
-                cr, uid, action_id, {
+                 action_id, {
                     'warning_id': warning_id,
                 }, context=context
             )
@@ -109,7 +109,7 @@ class action_wizard(orm.TransientModel):
                 'hr_infraction',
                 'open_hr_infraction_warning'
             )
-            dict_act_window = iaa_obj.read(cr, uid, res_id, [])
+            dict_act_window = iaa_obj.read( res_id, [])
             dict_act_window['view_mode'] = 'form,tree'
             dict_act_window['domain'] = [('id', '=', warning_id)]
             return dict_act_window
@@ -121,10 +121,10 @@ class action_wizard(orm.TransientModel):
         elif data['action_type'] == 'transfer':
             xfer_obj = self.pool.get('hr.department.transfer')
             ee = self.pool.get('hr.employee').browse(
-                cr, uid, infraction_data['employee_id'][0], context=context
+                 infraction_data['employee_id'][0], context=context
             )
             _tmp = xfer_obj.onchange_employee(
-                cr, uid, None, ee.id, context=context
+                 None, ee.id, context=context
             )
             vals = {
                 'employee_id': ee.id,
@@ -133,18 +133,18 @@ class action_wizard(orm.TransientModel):
                 'src_contract_id': _tmp['value']['src_contract_id'],
                 'date': data['xfer_effective_date'],
             }
-            xfer_id = xfer_obj.create(cr, uid, vals, context=context)
+            xfer_id = xfer_obj.create( vals, context=context)
             infraa_obj.write(
-                cr, uid, action_id, {
+                 action_id, {
                     'transfer_id': xfer_id,
                 }, context=context
             )
 
             res_model, res_id = imd_obj.get_object_reference(
-                cr, uid, 'hr_transfer',
+                 'hr_transfer',
                 'open_hr_department_transfer',
             )
-            dict_act_window = iaa_obj.read(cr, uid, res_id, [])
+            dict_act_window = iaa_obj.read( res_id, [])
             dict_act_window['view_mode'] = 'form,tree'
             dict_act_window['domain'] = [('id', '=', xfer_id)]
             return dict_act_window
@@ -155,20 +155,20 @@ class action_wizard(orm.TransientModel):
             term_obj = self.pool.get('hr.employee.termination')
             wkf = netsvc.LocalService('workflow')
             ee = self.pool.get('hr.employee').browse(
-                cr, uid, infraction_data['employee_id'][0], context=context
+                 infraction_data['employee_id'][0], context=context
             )
 
             # We must create the employment termination object before we set
             # the contract state to 'done'.
             res_model, res_id = imd_obj.get_object_reference(
-                cr, uid, 'hr_infraction', 'term_dismissal')
+                 'hr_infraction', 'term_dismissal')
             vals = {
                 'employee_id': ee.id,
                 'name': data['effective_date'],
                 'reason_id': res_id,
             }
-            term_id = term_obj.create(cr, uid, vals, context=context)
-            infraa_obj.write(cr, uid, action_id, {
+            term_id = term_obj.create( vals, context=context)
+            infraa_obj.write( action_id, {
                              'termination_id': term_id}, context=context)
 
             # End any open contracts
@@ -190,10 +190,10 @@ class action_wizard(orm.TransientModel):
             )
 
             res_model, res_id = imd_obj.get_object_reference(
-                cr, uid, 'hr_employee_state',
+                 'hr_employee_state',
                 'open_hr_employee_termination'
             )
-            dict_act_window = iaa_obj.read(cr, uid, res_id, [])
+            dict_act_window = iaa_obj.read( res_id, [])
             dict_act_window['domain'] = [('id', '=', term_id)]
             return dict_act_window
 

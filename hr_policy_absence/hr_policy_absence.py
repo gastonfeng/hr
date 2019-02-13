@@ -36,28 +36,28 @@ class policy_absence(orm.Model):
     # Return records with latest date first
     _order = 'date desc'
 
-    def get_codes(self, cr, uid, idx, context=None):
+    def get_codes(self,  idx, context=None):
 
         res = []
         [res.append(
             (line.code, line.name, line.type, line.rate, line.use_awol))
-         for line in self.browse(cr, uid, idx, context=context).line_ids]
+         for line in self.browse( idx, context=context).line_ids]
         return res
 
-    def paid_codes(self, cr, uid, idx, context=None):
+    def paid_codes(self,  idx, context=None):
 
         res = []
         [res.append((line.code, line.name))
          for line in self.browse(
-            cr, uid, idx, context=context).line_ids if line.type == 'paid']
+             idx, context=context).line_ids if line.type == 'paid']
         return res
 
-    def unpaid_codes(self, cr, uid, idx, context=None):
+    def unpaid_codes(self,  idx, context=None):
 
         res = []
         [res.append((line.code, line.name))
          for line in self.browse(
-            cr, uid, idx, context=context
+             idx, context=context
         ).line_ids if line.type == 'unpaid']
         return res
 
@@ -94,14 +94,14 @@ class policy_line_absence(orm.Model):
         )
     }
 
-    def onchange_holiday(self, cr, uid, ids, holiday_status_id, context=None):
+    def onchange_holiday(self,  ids, holiday_status_id, context=None):
 
         res = {'value': {'name': False, 'code': False}}
         if not holiday_status_id:
             return res
         data = self.pool.get(
             'hr.holidays.status').read(
-                cr, uid, holiday_status_id, ['name', 'code'],
+                 holiday_status_id, ['name', 'code'],
                 context=context)
         res['value']['name'] = data['name']
         res['value']['code'] = data['code']

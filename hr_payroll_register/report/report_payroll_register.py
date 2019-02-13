@@ -30,8 +30,8 @@ from report import report_sxw
 
 class report_payroll_summary(report_sxw.rml_parse):
 
-    def __init__(self, cr, uid, name, context):
-        super(report_payroll_summary, self).__init__(cr, uid, name, context)
+    def __init__(self,  name, context):
+        super(report_payroll_summary, self).__init__( name, context)
 
         self.localcontext.update({
             'time': time,
@@ -293,8 +293,8 @@ report_sxw.report_sxw(
 
 class report_payslips(report_sxw.rml_parse):
 
-    def __init__(self, cr, uid, name, context):
-        super(report_payslips, self).__init__(cr, uid, name, context)
+    def __init__(self,  name, context):
+        super(report_payslips, self).__init__( name, context)
 
         self.localcontext.update({
             'time': time,

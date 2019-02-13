@@ -24,8 +24,8 @@ from report import report_sxw
 
 class report_resume(report_sxw.rml_parse):
 
-    def __init__(self, cr, uid, name, context):
-        super(report_resume, self).__init__(cr, uid, name, context)
+    def __init__(self,  name, context):
+        super(report_resume, self).__init__( name, context)
         self.localcontext.update({
             'time': time,
             'get_experience_by_category': self.get_experience_by_category,
