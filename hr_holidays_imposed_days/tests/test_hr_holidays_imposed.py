@@ -5,9 +5,9 @@
 
 from dateutil.relativedelta import relativedelta
 
-from odoo.tests import common
-from odoo.exceptions import ValidationError
 from odoo import fields
+from odoo.exceptions import ValidationError
+from odoo.tests import common
 
 
 class TestHolidaysImposedDays(common.TransactionCase):

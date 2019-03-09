@@ -4,7 +4,8 @@
 
 import random
 import string
-from odoo import api, fields, models, _
+
+from odoo import api, fields, models
 from odoo.exceptions import Warning as UserWarning
 
 

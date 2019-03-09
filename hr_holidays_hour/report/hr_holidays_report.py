@@ -1,8 +1,9 @@
 # Copyright 2017 Onestein (<http://www.onestein.eu>)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from psycopg2.extensions import AsIs
 import re
+
+from psycopg2.extensions import AsIs
 
 from odoo import fields, models, tools
 

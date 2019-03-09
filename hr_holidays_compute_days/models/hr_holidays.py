@@ -1,9 +1,11 @@
 # Copyright 2017-2018 Tecnativa - Pedro M. Baeza
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from odoo import api, fields, models
 from datetime import time
+
 from dateutil import tz
+
+from odoo import api, fields, models
 
 
 class HrHolidays(models.Model):

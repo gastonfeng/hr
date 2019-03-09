@@ -1,9 +1,11 @@
 # Copyright 2017-2018 Tecnativa - Pedro M. Baeza
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from odoo import models
-from odoo.addons.resource.models.resource import to_naive_utc
 from datetime import datetime, time
+
+from odoo.addons.resource.models.resource import to_naive_utc
+
+from odoo import models
 
 
 class ResourceCalendar(models.Model):

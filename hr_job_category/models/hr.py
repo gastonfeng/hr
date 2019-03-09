@@ -1,8 +1,9 @@
 # Copyright 2013 Michael Telahun Makonnen <mmakonnen@gmail.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import models, fields, api
 import logging
+
+from odoo import models, fields, api
 
 _logger = logging.getLogger(__name__)
 
